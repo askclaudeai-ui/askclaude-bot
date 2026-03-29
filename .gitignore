@@ -1,0 +1,7 @@
+venv/
+queue/images/
+queue/reels/
+queue/stories/
+__pycache__/
+*.pyc
+.env
