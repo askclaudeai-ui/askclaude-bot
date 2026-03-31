@@ -1,0 +1,208 @@
+{
+  "id": "907e70af",
+  "content_type": "carousel",
+  "status": "pending",
+  "created_at": "2026-03-31T12:24:04.918618",
+  "published_at": null,
+  "instagram_media_id": null,
+  "generation_inputs": {
+    "strategy_snapshot": {
+      "model_phase": "bootstrap",
+      "timing": {
+        "preferred_days": [
+          {
+            "day": "thursday",
+            "score": 0.8,
+            "best_for": "reel"
+          }
+        ],
+        "preferred_hours_utc": [
+          13,
+          9,
+          18
+        ],
+        "weekly_cadence": {
+          "monday": "static",
+          "wednesday": "carousel",
+          "thursday": "reel"
+        }
+      },
+      "content_format": {
+        "format_weights": {
+          "reel": 0.5,
+          "carousel": 0.32,
+          "static": 0.18
+        },
+        "reel_optimal_duration_s": 22,
+        "carousel_optimal_slides": 6
+      }
+    },
+    "trend_report": {
+      "trending_topics": [
+        "AI-powered content creation and automation tools",
+        "Claude and LLM integration tutorials",
+        "Educational programming content and quick tips",
+        "Developer productivity hacks and workflows",
+        "Tech industry insights and behind-the-scenes content"
+      ],
+      "hashtags": {
+        "primary": [
+          "#ai",
+          "#programming",
+          "#developer"
+        ],
+        "niche": [
+          "#claude",
+          "#llm",
+          "#machinelearning",
+          "#artificialintelligence",
+          "#chatgpt",
+          "#aitools",
+          "#openai",
+          "#coding",
+          "#softwareengineering",
+          "#techcommunity"
+        ],
+        "evergreen": [
+          "#tech",
+          "#innovation",
+          "#tutorial",
+          "#productivity",
+          "#learntocode"
+        ]
+      },
+      "best_posting_times": [
+        {
+          "day": "tuesday",
+          "time_utc": "14:00",
+          "reason": "Peak developer activity during lunch break and afternoon work hours"
+        },
+        {
+          "day": "wednesday",
+          "time_utc": "13:00",
+          "reason": "Mid-week engagement peak when developers are most active"
+        },
+        {
+          "day": "thursday",
+          "time_utc": "20:00",
+          "reason": "Evening peak when developers unwind and consume educational content"
+        },
+        {
+          "day": "monday",
+          "time_utc": "10:00",
+          "reason": "Monday morning engagement as developers catch up on latest trends"
+        }
+      ],
+      "trending_audio": [
+        "Cha Cha Cha - Bruno Mars",
+        "360 orchestral cover",
+        "DAISIES - Justin Bieber",
+        "Original audio tracks for tutorials"
+      ],
+      "top_hook_styles": [
+        "Did you know that... (curiosity gap opener)",
+        "Stop scrolling if this sounds like you... (direct address)",
+        "3 mistakes everyone makes when... (numbered list format)",
+        "POV: You just discovered... (point of view format)",
+        "Everything you knew about [topic] is WRONG (contrarian hook)"
+      ],
+      "viral_formats": [
+        "Educational carousel posts with step-by-step tutorials",
+        "Short-form Reels with quick tips and code snippets",
+        "Behind-the-scenes developer workflow content",
+        "Problem-solution format Reels"
+      ],
+      "research_date": "2026-03-29"
+    },
+    "topic_cluster": "claude_api",
+    "hook_style_used": "number_list"
+  },
+  "post": {
+    "topic": "4 Essential Claude API Tips for Better Development Workflow",
+    "hook": "4 Claude API tricks that will level up your development game instantly \ud83d\ude80",
+    "caption": "4 Claude API tricks that will level up your development game instantly \ud83d\ude80\n\nSave this carousel for your next Claude API project.",
+    "hashtags": [
+      "#claudeai",
+      "#anthropic",
+      "#aidev",
+      "#llm",
+      "#pythondev",
+      "#apidevelopment",
+      "#aiintegration",
+      "#machinelearning",
+      "#codinglife",
+      "#devtips",
+      "#programming",
+      "#artificialintelligence",
+      "#developer",
+      "#techstack",
+      "#buildwithclaude",
+      "#promptengineering",
+      "#automation",
+      "#aitools"
+    ],
+    "audio_suggestion": "original audio",
+    "slides": [
+      {
+        "type": "cover",
+        "title": "4 Claude API Developer Essentials",
+        "subtitle": "Tips to supercharge your AI integration workflow"
+      },
+      {
+        "type": "content",
+        "tip_number": 1,
+        "title": "Stream Responses for Better UX",
+        "body": "Use streaming to show real-time responses instead of waiting for complete output. Your users will love the instant feedback!",
+        "code_snippet": "for chunk in client.messages.stream(\n    model=\"claude-3-sonnet-20240229\",\n    messages=[{\"role\": \"user\", \"content\": prompt}]\n):\n    print(chunk.delta.text, end=\"\")"
+      },
+      {
+        "type": "content",
+        "tip_number": 2,
+        "title": "Set Max Tokens Strategically",
+        "body": "Control response length and costs by setting max_tokens. Use 1000 for summaries, 4000 for detailed analysis.",
+        "code_snippet": "response = client.messages.create(\n    model=\"claude-3-sonnet-20240229\",\n    max_tokens=1000,\n    messages=[{\"role\": \"user\", \"content\": prompt}]\n)"
+      },
+      {
+        "type": "content",
+        "tip_number": 3,
+        "title": "Use System Prompts Effectively",
+        "body": "System prompts set Claude's behavior and context. Perfect for defining roles, output formats, and consistent responses.",
+        "code_snippet": "response = client.messages.create(\n    model=\"claude-3-sonnet-20240229\",\n    system=\"You are a Python expert. Always include error handling.\",\n    messages=[{\"role\": \"user\", \"content\": \"Help me write a function\"}]\n)"
+      },
+      {
+        "type": "content",
+        "tip_number": 4,
+        "title": "Handle Rate Limits Gracefully",
+        "body": "Implement exponential backoff to handle rate limits automatically. Your app stays stable during high traffic periods.",
+        "code_snippet": "import time\ntry:\n    response = client.messages.create(...)\nexcept RateLimitError:\n    time.sleep(2 ** retry_count)\n    # retry request"
+      },
+      {
+        "type": "cta",
+        "title": "Want More Claude Tips?",
+        "body": "Follow @ask.claudeai for daily AI development tips and save this post for reference!"
+      }
+    ],
+    "slide_count": 6,
+    "image_paths": [
+      "queue/images/907e70af/slide_01.png",
+      "queue/images/907e70af/slide_02.png",
+      "queue/images/907e70af/slide_03.png",
+      "queue/images/907e70af/slide_04.png",
+      "queue/images/907e70af/slide_05.png",
+      "queue/images/907e70af/slide_06.png"
+    ]
+  },
+  "scheduling": {
+    "recommended_day": "thursday",
+    "recommended_time_utc": "13:00",
+    "actual_publish_day": null,
+    "actual_publish_time_utc": null,
+    "timing_deviation_hours": null
+  },
+  "model_prediction": {
+    "predicted_engagement_rate": null,
+    "predicted_reach": null,
+    "prediction_confidence": null,
+    "model_phase_at_prediction": "bootstrap"
+  }
+}

@@ -1,0 +1,77 @@
+{
+  "trending_topics": [
+    "AI-powered content creation and automation tools",
+    "Claude and LLM integration tutorials",
+    "Educational programming content and quick tips",
+    "Developer productivity hacks and workflows",
+    "Tech industry insights and behind-the-scenes content"
+  ],
+  "hashtags": {
+    "primary": [
+      "#ai",
+      "#programming",
+      "#developer"
+    ],
+    "niche": [
+      "#claude",
+      "#llm",
+      "#machinelearning",
+      "#artificialintelligence",
+      "#chatgpt",
+      "#aitools",
+      "#openai",
+      "#coding",
+      "#softwareengineering",
+      "#techcommunity"
+    ],
+    "evergreen": [
+      "#tech",
+      "#innovation",
+      "#tutorial",
+      "#productivity",
+      "#learntocode"
+    ]
+  },
+  "best_posting_times": [
+    {
+      "day": "tuesday",
+      "time_utc": "14:00",
+      "reason": "Peak developer activity during lunch break and afternoon work hours"
+    },
+    {
+      "day": "wednesday",
+      "time_utc": "13:00",
+      "reason": "Mid-week engagement peak when developers are most active"
+    },
+    {
+      "day": "thursday",
+      "time_utc": "20:00",
+      "reason": "Evening peak when developers unwind and consume educational content"
+    },
+    {
+      "day": "monday",
+      "time_utc": "10:00",
+      "reason": "Monday morning engagement as developers catch up on latest trends"
+    }
+  ],
+  "trending_audio": [
+    "Cha Cha Cha - Bruno Mars",
+    "360 orchestral cover",
+    "DAISIES - Justin Bieber",
+    "Original audio tracks for tutorials"
+  ],
+  "top_hook_styles": [
+    "Did you know that... (curiosity gap opener)",
+    "Stop scrolling if this sounds like you... (direct address)",
+    "3 mistakes everyone makes when... (numbered list format)",
+    "POV: You just discovered... (point of view format)",
+    "Everything you knew about [topic] is WRONG (contrarian hook)"
+  ],
+  "viral_formats": [
+    "Educational carousel posts with step-by-step tutorials",
+    "Short-form Reels with quick tips and code snippets",
+    "Behind-the-scenes developer workflow content",
+    "Problem-solution format Reels"
+  ],
+  "research_date": "2026-03-29"
+}
