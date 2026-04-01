@@ -1,0 +1,29 @@
+services:
+  - type: web
+    name: askclaude-dashboard
+    runtime: python
+    buildCommand: pip install flask requests python-dotenv pillow anthropic
+    startCommand: python scripts/dashboard.py
+    envVars:
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: INSTAGRAM_ACCESS_TOKEN
+        sync: false
+      - key: INSTAGRAM_USER_ID
+        sync: false
+      - key: IMGBB_API_KEY
+        sync: false
+      - key: ELEVENLABS_API_KEY
+        sync: false
+      - key: ELEVENLABS_VOICE_ID
+        sync: false
+      - key: GMAIL_APP_PASSWORD
+        sync: false
+      - key: NOTIFY_EMAIL
+        sync: false
+      - key: GITHUB_TOKEN
+        sync: false
+      - key: GITHUB_REPO
+        sync: false
+      - key: DASHBOARD_URL
+        sync: false
