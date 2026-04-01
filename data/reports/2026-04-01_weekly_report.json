@@ -1,0 +1,51 @@
+{
+  "generated_at": "2026-04-01T17:16:48.013255",
+  "week_ending": "2026-04-01",
+  "feed_records": 0,
+  "story_records": 0,
+  "performance": "Feed posts analysed: 0\nStory posts analysed: 0\n\nFeed model: bootstrap phase (0/20 posts)\n\nStory model: bootstrap phase (0/20 stories)\n\nAccount followers: 0\nTotal posts published: 0",
+  "feed_model": {
+    "phase": "bootstrap",
+    "message": "No data yet"
+  },
+  "story_model": {
+    "phase": "bootstrap",
+    "message": "No data yet"
+  },
+  "narrative": "Week 1 marks the official launch of @ask.claudeai with a clean slate and ambitious goals. As expected in the bootstrap phase, we're starting from zero across all metrics - no posts published, no followers, and no performance data to analyze yet. This presents both a challenge and an opportunity to establish strong foundational content and engagement strategies from day one.\n\nThe immediate priority is building our initial content library to kickstart the feed model training (targeting 20 posts) and story model training (targeting 20 stories). Without baseline performance data, our strategy will focus on proven Instagram growth tactics for tech/AI accounts: educational carousel posts, behind-the-scenes API tutorials, quick-tip stories, and community engagement. Success this week will be measured by content consistency, initial follower acquisition, and engagement quality rather than volume.",
+  "suggestions": [
+    {
+      "priority": 1,
+      "channel": "feed",
+      "suggestion": "Create 3-4 educational carousel posts featuring beginner-friendly Claude API tips with code snippets and visual examples",
+      "confidence": 0.88
+    },
+    {
+      "priority": 2,
+      "channel": "story",
+      "suggestion": "Post daily quick-tip stories showcasing one-liner API tricks with polls asking followers about their experience level",
+      "confidence": 0.82
+    },
+    {
+      "priority": 3,
+      "channel": "feed",
+      "suggestion": "Share a detailed tutorial post breaking down a real-world Claude API use case with before/after results",
+      "confidence": 0.75
+    },
+    {
+      "priority": 4,
+      "channel": "story",
+      "suggestion": "Create behind-the-scenes content showing the account creation process and ask followers what content they want to see",
+      "confidence": 0.7
+    },
+    {
+      "priority": 5,
+      "channel": "feed",
+      "suggestion": "Post an introduction/welcome post explaining the account's mission with a clear call-to-action for developers to follow",
+      "confidence": 0.85
+    }
+  ],
+  "experiment": "A/B test carousel post formats: technical code-heavy slides vs. simplified visual explanations with minimal code to determine audience preference",
+  "strategy_changes_applied": [],
+  "strategy_changes_deferred": []
+}

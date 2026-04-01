@@ -6,8 +6,18 @@
     "stories_in_dataset": 0
   },
   "timing": {
-    "preferred_days": [{"day": "thursday", "score": 0.8, "best_for": "reel"}],
-    "preferred_hours_utc": [13, 9, 18],
+    "preferred_days": [
+      {
+        "day": "thursday",
+        "score": 0.8,
+        "best_for": "reel"
+      }
+    ],
+    "preferred_hours_utc": [
+      13,
+      9,
+      18
+    ],
     "weekly_cadence": {
       "monday": "static",
       "wednesday": "carousel",
@@ -15,12 +25,21 @@
     }
   },
   "content_format": {
-    "format_weights": {"reel": 0.50, "carousel": 0.32, "static": 0.18},
+    "format_weights": {
+      "reel": 0.5,
+      "carousel": 0.32,
+      "static": 0.18
+    },
     "reel_optimal_duration_s": 22,
     "carousel_optimal_slides": 6
   },
   "topics": {
-    "ranked_clusters": [{"cluster": "claude_api", "score": 0.9}],
+    "ranked_clusters": [
+      {
+        "cluster": "claude_api",
+        "score": 0.9
+      }
+    ],
     "topic_cooldown_days": 14,
     "always_avoid": [],
     "trending_boost": []
@@ -36,16 +55,35 @@
   },
   "hashtags": {
     "total_count": 18,
-    "tier_ratio": {"primary": 3, "niche": 10, "evergreen": 5},
-    "evergreen_tags": ["#claudeai","#anthropic","#aidev","#llm","#pythondev"],
+    "tier_ratio": {
+      "primary": 3,
+      "niche": 10,
+      "evergreen": 5
+    },
+    "evergreen_tags": [
+      "#claudeai",
+      "#anthropic",
+      "#aidev",
+      "#llm",
+      "#pythondev"
+    ],
     "banned_tags": [],
     "top_niche_performers": []
   },
   "caption": {
     "optimal_word_count": {
-      "static": {"min": 80, "max": 150},
-      "carousel": {"min": 60, "max": 100},
-      "reel": {"min": 40, "max": 80}
+      "static": {
+        "min": 80,
+        "max": 150
+      },
+      "carousel": {
+        "min": 60,
+        "max": 100
+      },
+      "reel": {
+        "min": 40,
+        "max": 80
+      }
     },
     "cta_style": "save_prompt",
     "emoji_density": "light",
@@ -61,7 +99,10 @@
     },
     "optimal_post_hour_utc": 18,
     "poll_style": "either_or",
-    "quiz_topics": ["claude_api", "prompting"],
+    "quiz_topics": [
+      "claude_api",
+      "prompting"
+    ],
     "completion_rate_baseline": 0.65,
     "interaction_rate_baseline": 0.12
   }
