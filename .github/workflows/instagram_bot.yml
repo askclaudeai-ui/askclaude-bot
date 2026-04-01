@@ -198,3 +198,54 @@ jobs:
           git add data/
           git diff --staged --quiet || git commit -m "Weekly optimisation $(date +%Y-%m-%d)"
           git push
+# ── Job 6: Publish on approval (triggered by dashboard) ─────────────
+  publish_on_approval:
+    if: github.event_name == 'repository_dispatch' && github.event.action == 'publish_approved_post'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install anthropic pillow moviepy==1.0.3 requests flask
+          pip install scikit-learn xgboost pandas numpy
+          pip install elevenlabs python-dotenv
+
+      - name: Pull latest
+        run: git pull
+
+      - name: Publish approved post
+        run: python scripts/publish_post.py
+
+      - name: Send publish confirmation email
+        run: python -c "
+import json, os, sys
+sys.path.insert(0, 'scripts')
+from notify import notify_post_published
+# Find most recently published post
+import os
+posts = []
+for f in os.listdir('queue'):
+    if f.endswith('.json'):
+        d = json.load(open(f'queue/{f}'))
+        if d.get('status') == 'published':
+            posts.append(d)
+if posts:
+    posts.sort(key=lambda x: x.get('published_at',''), reverse=True)
+    p = posts[0]
+    notify_post_published(p, p.get('instagram_media_id',''))
+"
+
+      - name: Commit published status
+        run: |
+          git config user.name  "Ask Claude Bot"
+          git config user.email "askclaudeai@gmail.com"
+          git add queue/
+          git diff --staged --quiet || git commit -m "Published post $(date +%Y-%m-%d)"
+          git push

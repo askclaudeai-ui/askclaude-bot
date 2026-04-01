@@ -1,0 +1,11 @@
+anthropic>=0.40.0
+pillow>=10.0.0
+moviepy==1.0.3
+requests>=2.31.0
+flask>=3.0.0
+scikit-learn>=1.4.0
+xgboost>=2.0.0
+pandas>=2.0.0
+numpy>=1.26.0
+elevenlabs>=1.0.0
+python-dotenv>=1.0.0

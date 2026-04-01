@@ -395,7 +395,32 @@ def index():
 @app.route("/approve/<post_id>")
 def approve(post_id):
     update_status(post_id, "approved")
-    return redirect(url_for("index", filter="pending"))
+
+    # Trigger GitHub Actions publish workflow
+    github_token = os.getenv("GITHUB_TOKEN")
+    github_repo  = os.getenv("GITHUB_REPO")  # e.g. "askclaudeai-ui/askclaude-bot"
+
+    if github_token and github_repo:
+        try:
+            r = requests.post(
+                f"https://api.github.com/repos/{github_repo}/dispatches",
+                headers={
+                    "Authorization": f"token {github_token}",
+                    "Accept": "application/vnd.github.v3+json"
+                },
+                json={
+                    "event_type": "publish_approved_post",
+                    "client_payload": {"post_id": post_id}
+                }
+            )
+            if r.status_code == 204:
+                print(f"GitHub Actions publish triggered for {post_id}")
+            else:
+                print(f"GitHub dispatch failed: {r.status_code} {r.text}")
+        except Exception as e:
+            print(f"Could not trigger publish: {e}")
+
+    return redirect(url_for("index", filter="approved"))
 
 @app.route("/reject/<post_id>")
 def reject(post_id):
@@ -459,4 +484,5 @@ def serve_image(post_id):
 if __name__ == "__main__":
     print("Dashboard running at http://127.0.0.1:5000")
     print("Press Ctrl+C to stop.")
-    app.run(debug=False, host="127.0.0.1", port=5000)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(debug=False, host="0.0.0.0", port=port)

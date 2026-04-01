@@ -1,6 +1,7 @@
 import anthropic
 import json
 import os
+import base64
 import re
 import uuid
 from datetime import datetime
@@ -181,6 +182,30 @@ Return this exact structure:
     print(f"\nCAPTION PREVIEW:\n{post_data.get('caption', '')[:200]}...")
     print(f"\nHASHTAGS: {' '.join(post_data.get('hashtags', []))}")
     print(f"\nRECOMMENDED: {post_data.get('recommended_day', '')} at {post_data.get('recommended_time_utc', '')} UTC")
+# Upload image to ImgBB immediately for dashboard preview
+    image_path = f"queue/images/{post_id}.png"
+    if os.path.exists(image_path):
+        try:
+            imgbb_key = os.getenv("IMGBB_API_KEY")
+            with open(image_path, "rb") as f:
+                encoded = base64.b64encode(f.read()).decode("utf-8")
+            r = requests.post("https://api.imgbb.com/1/upload",
+                              data={"key": imgbb_key, "image": encoded})
+            result = r.json()
+            if result.get("success"):
+                queue_entry["imgbb_url"] = result["data"]["url"]
+                with open(filename, "w") as f:
+                    json.dump(queue_entry, f, indent=2)
+                print(f"Image uploaded to ImgBB: {queue_entry['imgbb_url']}")
+        except Exception as e:
+            print(f"ImgBB upload skipped: {e}")
+
+    # Send email notification
+    try:
+        from notify import notify_post_ready
+        notify_post_ready(queue_entry)
+    except Exception as e:
+        print(f"Notification skipped: {e}")
 
     return filename, queue_entry
 
