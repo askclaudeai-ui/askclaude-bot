@@ -1,0 +1,13 @@
+{
+  "analysed_at": "2026-03-31T21:12:24.112159",
+  "feed_record_count": 0,
+  "story_record_count": 0,
+  "feed_model": {
+    "phase": "bootstrap",
+    "message": "No data yet"
+  },
+  "story_model": {
+    "phase": "bootstrap",
+    "message": "No data yet"
+  }
+}
