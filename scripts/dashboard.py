@@ -155,7 +155,11 @@ HTML = """
             <div class="post-body">
                 <div class="post-image">
                     {% if post.image_path %}
-                        <img src="/image/{{ post.id }}?t={{ post.created_at }}" alt="Post image" id="img-{{ post.id }}">
+                        {% if post.image_path.startswith('http') %}
+                            <img src="{{ post.image_path }}" alt="Post image" id="img-{{ post.id }}" style="width:100%;display:block;border-radius:8px">
+                        {% else %}
+                            <img src="/image/{{ post.id }}?t={{ post.created_at }}" alt="Post image" id="img-{{ post.id }}">
+                        {% endif %}
                     {% else %}
                         <div class="no-img">No image yet</div>
                     {% endif %}
@@ -338,8 +342,13 @@ def load_posts(filter_status=None):
         try:
             with open(path, "r") as f:
                 post = json.load(f)
-            image_path = os.path.join(QUEUE_DIR, "images", f"{post['id']}.png")
-            post["image_path"] = image_path if os.path.exists(image_path) else None
+            # Use ImgBB URL if available (works on Render)
+            # Fall back to local path for local dashboard use
+            if post.get("imgbb_url"):
+                post["image_path"] = post["imgbb_url"]
+            else:
+                image_path = os.path.join(QUEUE_DIR, "images", f"{post['id']}.png")
+                post["image_path"] = image_path if os.path.exists(image_path) else None
             if filter_status and filter_status != "all":
                 if post.get("status") == filter_status:
                     posts.append(post)
