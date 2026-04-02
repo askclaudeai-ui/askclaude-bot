@@ -148,3 +148,14 @@ def notify_post_published(post, media_id):
         f"{type_emoji} Published — {hook[:50]}",
         html
     )
+
+if __name__ == "__main__":
+    print("Sending test email...")
+    result = send_email(
+        "Test from Ask Claude Bot",
+        "<h1 style='color:#F97316'>It works!</h1><p>Your email notifications are working correctly.</p>"
+    )
+    if result:
+        print("Email sent successfully - check your inbox")
+    else:
+        print("Email failed - check your GMAIL_APP_PASSWORD in .env")
