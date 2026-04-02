@@ -1,19 +1,17 @@
 import json
 import os
 import sys
-import threading
+import requests
 from datetime import datetime
 from flask import Flask, render_template_string, redirect, url_for, request, send_file, jsonify
 from dotenv import load_dotenv
 
 load_dotenv()
 
-app = Flask(__name__)
-BASE_DIR  = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-QUEUE_DIR = os.path.join(BASE_DIR, "queue")
+app         = Flask(__name__)
+BASE_DIR    = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+QUEUE_DIR   = os.path.join(BASE_DIR, "queue")
 SCRIPTS_DIR = os.path.join(BASE_DIR, "scripts")
-
-# Add scripts dir to path so we can import regenerate_post
 sys.path.insert(0, SCRIPTS_DIR)
 
 HTML = """
@@ -45,10 +43,15 @@ HTML = """
         .badge-rejected  { background: #450A0A; color: #FCA5A5; }
         .badge-type { background: #1F2937; color: #9CA3AF; }
         .post-date { font-size: 12px; color: #8B949E; }
-        .post-body { padding: 20px; display: grid; grid-template-columns: 200px 1fr; gap: 20px; }
-        .post-image { border-radius: 8px; overflow: hidden; background: #0D1117; position: relative; }
-        .post-image img { width: 100%; display: block; }
+        .post-body { padding: 20px; display: grid; grid-template-columns: 280px 1fr; gap: 20px; }
+        .post-image { border-radius: 8px; overflow: hidden; background: #0D1117; }
+        .post-image img { width: 100%; display: block; border-radius: 8px; }
+        .post-image video { width: 100%; display: block; border-radius: 8px; }
         .no-img { width: 100%; aspect-ratio: 1; display: flex; align-items: center; justify-content: center; color: #8B949E; font-size: 13px; }
+        .slide-nav { display: flex; gap: 8px; justify-content: center; margin-top: 8px; align-items: center; }
+        .slide-nav button { background: #374151; color: white; border: none; border-radius: 6px; padding: 4px 12px; cursor: pointer; font-size: 13px; }
+        .slide-nav button:hover { background: #4B5563; }
+        .slide-counter { font-size: 12px; color: #8B949E; }
         .regen-img-btn { width: 100%; margin-top: 8px; padding: 6px; background: #1D4ED8; color: white; border: none; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; }
         .regen-img-btn:hover { background: #1E40AF; }
         .post-content { display: flex; flex-direction: column; gap: 12px; }
@@ -73,15 +76,11 @@ HTML = """
         .tabs { display: flex; gap: 4px; margin-bottom: 24px; flex-wrap: wrap; }
         .tab { padding: 8px 20px; border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer; text-decoration: none; color: #8B949E; background: #161B22; border: 1px solid #30363D; }
         .tab.active { background: #F97316; color: white; border-color: #F97316; }
-
-        /* Spinner overlay */
         .spinner-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.75); z-index: 200; flex-direction: column; align-items: center; justify-content: center; gap: 20px; }
         .spinner-overlay.open { display: flex; }
         .spinner { width: 48px; height: 48px; border: 5px solid #30363D; border-top-color: #F97316; border-radius: 50%; animation: spin 0.8s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
         .spinner-text { color: #E6EDF3; font-size: 16px; }
-
-        /* Modals */
         .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 100; align-items: center; justify-content: center; }
         .modal-overlay.open { display: flex; }
         .modal { background: #161B22; border: 1px solid #30363D; border-radius: 16px; padding: 28px; width: 90%; max-width: 680px; max-height: 88vh; overflow-y: auto; }
@@ -90,11 +89,9 @@ HTML = """
         .modal h2.purple { color: #A78BFA; }
         .form-group { margin-bottom: 16px; }
         .form-group label { display: block; font-size: 13px; color: #8B949E; margin-bottom: 6px; font-weight: 500; }
-        .form-group input,
-        .form-group textarea { width: 100%; background: #0D1117; border: 1px solid #30363D; border-radius: 8px; padding: 10px 14px; color: #E6EDF3; font-size: 14px; font-family: inherit; resize: vertical; }
+        .form-group input, .form-group textarea { width: 100%; background: #0D1117; border: 1px solid #30363D; border-radius: 8px; padding: 10px 14px; color: #E6EDF3; font-size: 14px; font-family: inherit; resize: vertical; }
         .form-group textarea { min-height: 120px; line-height: 1.6; }
-        .form-group input:focus,
-        .form-group textarea:focus { outline: none; border-color: #F97316; }
+        .form-group input:focus, .form-group textarea:focus { outline: none; border-color: #F97316; }
         .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
         .btn-save     { background: #F97316; color: white; }
         .btn-rewrite  { background: #7C3AED; color: white; }
@@ -104,11 +101,15 @@ HTML = """
         .btn-cancel:hover  { background: #4B5563; }
         .char-count { font-size: 11px; color: #8B949E; margin-top: 4px; text-align: right; }
         .feedback-hint { font-size: 12px; color: #8B949E; margin-top: 4px; line-height: 1.5; }
+        .preview-label { font-size: 11px; color: #8B949E; text-align: center; margin-top: 4px; }
+        @media (max-width: 640px) {
+            .post-body { grid-template-columns: 1fr; }
+            .stats { grid-template-columns: repeat(2, 1fr); }
+        }
     </style>
 </head>
 <body>
 
-<!-- Spinner -->
 <div class="spinner-overlay" id="spinner">
     <div class="spinner"></div>
     <div class="spinner-text" id="spinner-text">Processing...</div>
@@ -154,20 +155,68 @@ HTML = """
             </div>
             <div class="post-body">
                 <div class="post-image">
-                    {% if post.image_path %}
+
+                    {% if post.content_type == 'reel' and post.cloudinary_video_url %}
+                        <video controls style="width:100%;border-radius:8px"
+                               poster="{{ post.imgbb_url or '' }}">
+                            <source src="{{ post.cloudinary_video_url }}" type="video/mp4">
+                        </video>
+                        <div class="preview-label">Full reel preview</div>
+
+                    {% elif post.content_type == 'carousel' and post.imgbb_slide_urls %}
+                        {% for url in post.imgbb_slide_urls %}
+                            {% if url %}
+                            <img src="{{ url }}"
+                                 class="carousel-slide-{{ post.id }}"
+                                 data-index="{{ loop.index0 }}"
+                                 style="width:100%;border-radius:8px;display:{% if loop.first %}block{% else %}none{% endif %}">
+                            {% endif %}
+                        {% endfor %}
+                        <div class="slide-nav">
+                            <button onclick="prevSlide('{{ post.id }}')">←</button>
+                            <span class="slide-counter" id="slide-counter-{{ post.id }}">
+                                1 / {{ post.imgbb_slide_urls | length }}
+                            </span>
+                            <button onclick="nextSlide('{{ post.id }}')">→</button>
+                        </div>
+                        <div class="preview-label">Swipe through all slides</div>
+
+                    {% elif post.content_type == 'story' and post.cloudinary_story_urls %}
+                        {% for url in post.cloudinary_story_urls %}
+                            {% if url %}
+                            <img src="{{ url }}"
+                                 class="story-slide-{{ post.id }}"
+                                 data-index="{{ loop.index0 }}"
+                                 style="width:100%;border-radius:8px;aspect-ratio:9/16;object-fit:cover;display:{% if loop.first %}block{% else %}none{% endif %}">
+                            {% endif %}
+                        {% endfor %}
+                        {% if post.cloudinary_story_urls | length > 1 %}
+                        <div class="slide-nav">
+                            <button onclick="prevSlide('{{ post.id }}')">←</button>
+                            <span class="slide-counter" id="slide-counter-{{ post.id }}">
+                                1 / {{ post.cloudinary_story_urls | length }}
+                            </span>
+                            <button onclick="nextSlide('{{ post.id }}')">→</button>
+                        </div>
+                        {% endif %}
+                        <div class="preview-label">Story preview</div>
+
+                    {% elif post.image_path %}
                         {% if post.image_path.startswith('http') %}
-                            <img src="{{ post.image_path }}" alt="Post image" id="img-{{ post.id }}" style="width:100%;display:block;border-radius:8px">
+                            <img src="{{ post.image_path }}" alt="Post image" id="img-{{ post.id }}">
                         {% else %}
                             <img src="/image/{{ post.id }}?t={{ post.created_at }}" alt="Post image" id="img-{{ post.id }}">
                         {% endif %}
+
                     {% else %}
-                        <div class="no-img">No image yet</div>
+                        <div class="no-img">No preview yet</div>
                     {% endif %}
-                    <button class="regen-img-btn"
-                        onclick="regenImageOnly('{{ post.id }}')">
+
+                    <button class="regen-img-btn" onclick="regenImageOnly('{{ post.id }}')">
                         Regenerate image only
                     </button>
                 </div>
+
                 <div class="post-content">
                     <div class="hook">{{ post.post.hook }}</div>
                     <div class="topic">Topic: {{ post.post.topic }}</div>
@@ -187,8 +236,7 @@ HTML = """
                             {{ post.scheduling.recommended_day | tojson }},
                             {{ post.scheduling.recommended_time_utc | tojson }}
                         )">Edit post</button>
-                        <button class="btn btn-feedback"
-                            onclick="openFeedback('{{ post.id }}')">Give feedback</button>
+                        <button class="btn btn-feedback" onclick="openFeedback('{{ post.id }}')">Give feedback</button>
                     </div>
                 </div>
             </div>
@@ -209,7 +257,7 @@ HTML = """
         <form method="POST" action="/edit" onsubmit="showSpinner('Saving and regenerating image...')">
             <input type="hidden" name="post_id" id="edit_post_id">
             <div class="form-group">
-                <label>Hook (first line — max 90 chars)</label>
+                <label>Hook (max 90 chars)</label>
                 <input type="text" name="hook" id="edit_hook" maxlength="120"
                        oninput="updateCount('edit_hook','hook_count')">
                 <div class="char-count"><span id="hook_count">0</span> / 90</div>
@@ -249,10 +297,8 @@ HTML = """
             <div class="form-group">
                 <label>Your feedback</label>
                 <textarea name="feedback" id="feedback_text" rows="6"
-                    placeholder="e.g. Make it more beginner friendly. Add a code example. Shorten the caption. Focus more on Claude Code rather than the API. Change the hook to a question style."></textarea>
-                <div class="feedback-hint">
-                    Claude will rewrite the entire post based on your notes, then regenerate the image automatically.
-                </div>
+                    placeholder="e.g. Make it more beginner friendly. Add a code example. Shorten the caption. Focus more on Claude Code."></textarea>
+                <div class="feedback-hint">Claude will rewrite the entire post then regenerate the image automatically.</div>
             </div>
             <div class="modal-actions">
                 <button type="button" class="btn btn-cancel" onclick="closeFeedback()">Cancel</button>
@@ -269,6 +315,37 @@ function showSpinner(text) {
 }
 function hideSpinner() {
     document.getElementById('spinner').classList.remove('open');
+}
+
+// Slide navigation
+var slideIndexes = {};
+
+function getSlides(postId) {
+    var slides = document.querySelectorAll('.carousel-slide-' + postId);
+    if (!slides.length) slides = document.querySelectorAll('.story-slide-' + postId);
+    return slides;
+}
+
+function showSlide(postId, index) {
+    var slides  = getSlides(postId);
+    var counter = document.getElementById('slide-counter-' + postId);
+    if (!slides.length) return;
+    slides.forEach(function(s) { s.style.display = 'none'; });
+    slides[index].style.display = 'block';
+    if (counter) counter.textContent = (index + 1) + ' / ' + slides.length;
+    slideIndexes[postId] = index;
+}
+
+function nextSlide(postId) {
+    var slides = getSlides(postId);
+    var cur    = slideIndexes[postId] || 0;
+    showSlide(postId, (cur + 1) % slides.length);
+}
+
+function prevSlide(postId) {
+    var slides = getSlides(postId);
+    var cur    = slideIndexes[postId] || 0;
+    showSlide(postId, (cur - 1 + slides.length) % slides.length);
 }
 
 function openEdit(id, hook, caption, hashtags, day, time) {
@@ -292,7 +369,7 @@ function openFeedback(id) {
 function closeFeedback() { document.getElementById('feedbackModal').classList.remove('open'); }
 
 function updateCount(fieldId, countId) {
-    const val = document.getElementById(fieldId).value;
+    var val = document.getElementById(fieldId).value;
     if (fieldId === 'edit_caption') {
         document.getElementById(countId).textContent =
             val.trim() ? val.trim().split(/\s+/).length : 0;
@@ -308,22 +385,18 @@ function regenImageOnly(postId) {
         .then(data => {
             hideSpinner();
             if (data.ok) {
-                // Bust cache and reload image
-                const img = document.getElementById('img-' + postId);
-                if (img) img.src = '/image/' + postId + '?t=' + Date.now();
+                var img = document.getElementById('img-' + postId);
+                if (img) img.src = img.src.split('?')[0] + '?t=' + Date.now();
             } else {
-                alert('Image regeneration failed: ' + (data.error || 'unknown error'));
+                alert('Regeneration failed: ' + (data.error || 'unknown'));
             }
         })
         .catch(() => { hideSpinner(); alert('Request failed.'); });
 }
 
-// Close modals on backdrop click
-['editModal','feedbackModal'].forEach(id => {
+['editModal','feedbackModal'].forEach(function(id) {
     document.getElementById(id).addEventListener('click', function(e) {
-        if (e.target === this) {
-            this.classList.remove('open');
-        }
+        if (e.target === this) this.classList.remove('open');
     });
 });
 </script>
@@ -342,13 +415,16 @@ def load_posts(filter_status=None):
         try:
             with open(path, "r") as f:
                 post = json.load(f)
-            # Use ImgBB URL if available (works on Render)
-            # Fall back to local path for local dashboard use
+            # Resolve image path
             if post.get("imgbb_url"):
                 post["image_path"] = post["imgbb_url"]
             else:
                 image_path = os.path.join(QUEUE_DIR, "images", f"{post['id']}.png")
                 post["image_path"] = image_path if os.path.exists(image_path) else None
+            # Pass through cloud URLs
+            post["cloudinary_video_url"]  = post.get("cloudinary_video_url")
+            post["cloudinary_story_urls"] = post.get("cloudinary_story_urls", [])
+            post["imgbb_slide_urls"]      = post.get("imgbb_slide_urls", [])
             if filter_status and filter_status != "all":
                 if post.get("status") == filter_status:
                     posts.append(post)
@@ -407,7 +483,7 @@ def approve(post_id):
 
     # Trigger GitHub Actions publish workflow
     github_token = os.getenv("GITHUB_TOKEN")
-    github_repo  = os.getenv("GITHUB_REPO")  # e.g. "askclaudeai-ui/askclaude-bot"
+    github_repo  = os.getenv("GITHUB_REPO")
 
     if github_token and github_repo:
         try:
@@ -415,10 +491,10 @@ def approve(post_id):
                 f"https://api.github.com/repos/{github_repo}/dispatches",
                 headers={
                     "Authorization": f"token {github_token}",
-                    "Accept": "application/vnd.github.v3+json"
+                    "Accept":        "application/vnd.github.v3+json"
                 },
                 json={
-                    "event_type": "publish_approved_post",
+                    "event_type":     "publish_approved_post",
                     "client_payload": {"post_id": post_id}
                 }
             )
@@ -442,22 +518,16 @@ def edit_post():
     path, post = find_post_file(post_id)
     if not post:
         return "Post not found", 404
-
     post["post"]["hook"]    = request.form.get("hook",    post["post"]["hook"])
     post["post"]["caption"] = request.form.get("caption", post["post"]["caption"])
-
     raw_tags = request.form.get("hashtags", "")
     post["post"]["hashtags"] = [t.strip() for t in raw_tags.split() if t.strip()]
     post["scheduling"]["recommended_day"]      = request.form.get("recommended_day",      post["scheduling"]["recommended_day"])
     post["scheduling"]["recommended_time_utc"] = request.form.get("recommended_time_utc", post["scheduling"]["recommended_time_utc"])
-
     with open(path, "w") as f:
         json.dump(post, f, indent=2)
-
-    # Regenerate image after edit
     from regenerate_post import regenerate_post
     regenerate_post(post_id, feedback=None)
-
     return redirect(url_for("index", filter=post.get("status", "pending")))
 
 @app.route("/feedback", methods=["POST"])
@@ -466,10 +536,8 @@ def feedback_post():
     feedback = request.form.get("feedback", "").strip()
     if not feedback:
         return redirect(url_for("index", filter="pending"))
-
     from regenerate_post import regenerate_post
     regenerate_post(post_id, feedback=feedback)
-
     path, post = find_post_file(post_id)
     status = post.get("status", "pending") if post else "pending"
     return redirect(url_for("index", filter=status))
@@ -491,7 +559,5 @@ def serve_image(post_id):
     return "No image", 404
 
 if __name__ == "__main__":
-    print("Dashboard running at http://127.0.0.1:5000")
-    print("Press Ctrl+C to stop.")
     port = int(os.environ.get("PORT", 5000))
     app.run(debug=False, host="0.0.0.0", port=port)

@@ -4,6 +4,7 @@ import os
 import re
 import uuid
 import requests
+import sys
 from datetime import datetime
 from PIL import Image, ImageDraw, ImageFont
 from dotenv import load_dotenv
@@ -193,16 +194,16 @@ def render_reel_frame(scene, post_id, scene_num, total_scenes,
         d.rectangle([cur_x+2, cur_y+8, cur_x+14, cur_y+LINE_H-8],
                     fill=(204, 204, 204))
 
-    # Callout — dynamic height, pinned above handle
+    # Callout box
     text_overlay = scene.get("text_overlay", "")
     tip_label    = scene.get("tip_label", f"Step {scene_num} of {total_scenes}")
 
-    OV_PAD   = 24
-    f_lbl    = get_font(24, True)
-    f_ov     = get_font(46, True)
-    ov_lines = wrap_text(text_overlay, f_ov, W - OV_PAD*2, d)
-    line_h_ov= 58
-    OV_H     = OV_PAD + 30 + 8 + len(ov_lines)*line_h_ov + OV_PAD
+    OV_PAD    = 24
+    f_lbl     = get_font(24, True)
+    f_ov      = get_font(46, True)
+    ov_lines  = wrap_text(text_overlay, f_ov, W - OV_PAD*2, d)
+    line_h_ov = 58
+    OV_H      = OV_PAD + 30 + 8 + len(ov_lines)*line_h_ov + OV_PAD
 
     HANDLE_H = 52
     OV_Y     = H - HANDLE_H - OV_H
@@ -239,17 +240,16 @@ The reel teaches ONE Claude API technique as a live coding tutorial.
 
 CONCEPT:
 The screen shows ONE Python file being written from scratch.
-Each scene reveals a few more lines — like watching someone type live.
-Each scene has its OWN voiceover narration that describes EXACTLY what is visible on screen in that scene.
-The narration for each scene must match what is highlighted on screen.
+Each scene reveals more lines — like watching someone type live.
+Each scene has its OWN voiceover narration describing exactly what is visible.
 
 VOICEOVER RULES PER SCENE:
-- Each scene voiceover: 12-18 words minimum — never shorter
-- Calm, measured pace — friendly senior developer explaining to a colleague
-- Describe what the highlighted line DOES, not just what it says
+- Each scene narration: 12-18 words minimum
+- Calm, measured pace
+- Describe what the highlighted line DOES
 - No symbols, no markdown
 - Numbers spelled out
-- Code terms spoken naturally: "dot create" not ".create"
+- Code terms spoken naturally
 - Last scene must end with a calm closing sentence
 
 CODE RULES:
@@ -274,7 +274,7 @@ Return ONLY valid JSON:
     "import anthropic",
     "",
     "client = anthropic.Anthropic()",
-    "# rest of script, max 18 lines"
+    "# rest of script max 18 lines"
   ],
   "filename": "short_name.py",
   "scenes": [
@@ -331,7 +331,7 @@ Return ONLY valid JSON:
 }}
 
 Include exactly 5 scenes.
-Each narration must be 12-18 words minimum — be specific about what the highlighted code does.
+Each narration must be 12-18 words minimum.
 full_code must be 14-18 lines, each max 30 characters.
 visible_lines must increase strictly across scenes.
 Last scene visible_lines must equal len(full_code)."""
@@ -344,7 +344,6 @@ Last scene visible_lines must equal len(full_code)."""
     return parse_claude_json(message.content[0].text)
 
 def generate_tts_segment(narration, output_path, voice_id, api_key):
-    """Generate TTS for a single scene narration segment."""
     response = requests.post(
         f"https://api.elevenlabs.io/v1/text-to-speech/{voice_id}",
         headers={"xi-api-key": api_key, "Content-Type": "application/json"},
@@ -366,11 +365,9 @@ def generate_tts_segment(narration, output_path, voice_id, api_key):
     return output_path
 
 def get_audio_duration(path, trim_end=0.15):
-    """Measure duration and trim noise tail from end of segment."""
     from moviepy.editor import AudioFileClip
     clip = AudioFileClip(path)
     dur  = clip.duration
-    # Trim last 150ms to remove ElevenLabs breath/hum artifact
     trimmed_dur = max(dur - trim_end, dur * 0.85)
     clip = clip.subclip(0, trimmed_dur)
     clip.write_audiofile(path, logger=None)
@@ -379,11 +376,10 @@ def get_audio_duration(path, trim_end=0.15):
     return actual
 
 def concatenate_audio(segment_paths, output_path):
-    """Concatenate segments with a small silence gap between each."""
     from moviepy.editor import AudioFileClip, concatenate_audioclips, AudioClip
     import numpy as np
 
-    SILENCE_S = 0.3  # 300ms silence between scenes — clean natural pause
+    SILENCE_S = 0.3
 
     def make_silence(duration, fps=44100):
         return AudioClip(
@@ -405,7 +401,6 @@ def concatenate_audio(segment_paths, output_path):
     return output_path
 
 def assemble_reel(frame_paths, segment_durations, combined_audio_path, output_path):
-    """Assemble frames using measured per-segment durations."""
     print("Assembling reel...")
     try:
         from moviepy.editor import ImageClip, AudioFileClip, concatenate_videoclips
@@ -455,14 +450,12 @@ def generate_reel():
     print(f"Hook:   {data.get('hook','')}")
     print(f"Code lines: {len(full_code)}")
     print(f"Scenes: {len(scenes)}")
-    for i, s in enumerate(scenes):
-        print(f"  Scene {i+1}: {len(s.get('narration','').split())} words — {s.get('narration','')[:60]}...")
 
     post_id   = str(uuid.uuid4())[:8]
     audio_dir = f"queue/reels/{post_id}"
     os.makedirs(audio_dir, exist_ok=True)
 
-    # Generate one TTS audio file per scene
+    # Generate per-scene TTS
     print("\nGenerating per-scene voiceovers...")
     segment_paths     = []
     segment_durations = []
@@ -476,22 +469,20 @@ def generate_reel():
             dur = get_audio_duration(seg_path)
             segment_paths.append(seg_path)
             segment_durations.append(dur)
-            print(f"  Scene {i+1}: {dur:.1f}s — {narration[:50]}...")
+            print(f"  Scene {i+1}: {dur:.1f}s")
         except Exception as e:
             print(f"  Scene {i+1} TTS failed: {e}")
             audio_ok = False
             break
 
     total_dur = sum(segment_durations)
-    print(f"\nTotal audio: {total_dur:.1f}s")
+    print(f"Total audio: {total_dur:.1f}s")
 
-    # Concatenate all segments into one audio file
     combined_audio = None
     if audio_ok:
         combined_audio = f"{audio_dir}/voiceover.mp3"
         try:
             concatenate_audio(segment_paths, combined_audio)
-            print(f"Combined audio: {combined_audio}")
         except Exception as e:
             print(f"Audio concatenation failed: {e}")
             audio_ok = False
@@ -512,9 +503,9 @@ def generate_reel():
         path = f"{frames_dir}/frame_{i+1:02d}.png"
         img.save(path, "PNG", optimize=True)
         frame_paths.append(path)
-        print(f"  Frame {i+1}/{len(scenes)} — {visible} lines visible — {segment_durations[i] if i < len(segment_durations) else '?':.1f}s")
+        print(f"  Frame {i+1}/{len(scenes)} — {visible} lines visible")
 
-    # Assemble video with per-segment durations = perfect sync
+    # Assemble video
     video_path = None
     if audio_ok and combined_audio:
         video_path = f"{audio_dir}/reel.mp4"
@@ -523,10 +514,9 @@ def generate_reel():
             combined_audio, video_path
         )
 
-    # Build combined voiceover script for reference
     full_script = " ".join(s.get("narration","") for s in scenes)
 
-    # Queue entry
+    # Build queue entry
     date_str = datetime.now().strftime("%Y-%m-%d")
     filename = f"queue/{date_str}_{post_id}.json"
 
@@ -537,6 +527,8 @@ def generate_reel():
         "created_at":       datetime.now().isoformat(),
         "published_at":     None,
         "instagram_media_id": None,
+        "imgbb_url":        None,
+        "cloudinary_video_url": None,
         "generation_inputs": {
             "strategy_snapshot": {
                 "model_phase":    strategy["meta"]["model_phase"],
@@ -554,16 +546,16 @@ def generate_reel():
             "hashtags":         data.get("hashtags", evergreen),
             "audio_suggestion": data.get("audio_suggestion", "original audio"),
             "reel_script": {
-                "full_script":      full_script,
-                "word_count":       len(full_script.split()),
-                "total_duration_s": total_dur,
-                "full_code":        full_code,
-                "scenes":           scenes,
-                "segment_paths":    segment_paths,
-                "segment_durations":segment_durations,
-                "combined_audio":   combined_audio,
-                "video_path":       video_path,
-                "frame_paths":      frame_paths
+                "full_script":       full_script,
+                "word_count":        len(full_script.split()),
+                "total_duration_s":  total_dur,
+                "full_code":         full_code,
+                "scenes":            scenes,
+                "segment_paths":     segment_paths,
+                "segment_durations": segment_durations,
+                "combined_audio":    combined_audio,
+                "video_path":        video_path,
+                "frame_paths":       frame_paths
             }
         },
         "scheduling": {
@@ -581,13 +573,50 @@ def generate_reel():
         }
     }
 
+    # Upload video to Cloudinary + first frame to ImgBB
+    if video_path and os.path.exists(video_path):
+        try:
+            sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+            from upload_media import upload_video_cloudinary, upload_image_imgbb
+            print("\nUploading reel to Cloudinary...")
+            queue_entry["cloudinary_video_url"] = upload_video_cloudinary(video_path)
+            print(f"Video uploaded: {queue_entry['cloudinary_video_url']}")
+            if frame_paths:
+                queue_entry["imgbb_url"] = upload_image_imgbb(frame_paths[0])
+                print(f"Preview frame uploaded: {queue_entry['imgbb_url']}")
+        except Exception as e:
+            print(f"Upload failed: {e}")
+            # Fall back to frame preview only
+            if frame_paths:
+                try:
+                    from upload_media import upload_image_imgbb
+                    queue_entry["imgbb_url"] = upload_image_imgbb(frame_paths[0])
+                except Exception as e2:
+                    print(f"Frame upload also failed: {e2}")
+    elif frame_paths:
+        try:
+            sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+            from upload_media import upload_image_imgbb
+            queue_entry["imgbb_url"] = upload_image_imgbb(frame_paths[0])
+            print(f"Preview frame uploaded: {queue_entry['imgbb_url']}")
+        except Exception as e:
+            print(f"Frame upload failed: {e}")
+
+    # Send email notification
+    try:
+        from notify import notify_post_ready
+        notify_post_ready(queue_entry)
+    except Exception as e:
+        print(f"Notification skipped: {e}")
+
+    # Save queue entry
     os.makedirs("queue", exist_ok=True)
     with open(filename, "w") as f:
         json.dump(queue_entry, f, indent=2)
 
     print(f"\nQueue entry: {filename}")
     if video_path:
-        print(f"\nPreview: open {video_path}")
+        print(f"Preview: open {video_path}")
     else:
         print(f"Frames: open {frames_dir}/")
 
