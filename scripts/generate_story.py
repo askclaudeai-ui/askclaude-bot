@@ -12,7 +12,6 @@ load_dotenv()
 
 BG      = (13,  17,  23)
 BG2     = (17,  24,  39)
-BG3     = (17,  24,  39)
 GRID    = (28,  35,  51)
 ORANGE  = (249, 115, 22)
 ORANGE2 = (251, 146, 60)
@@ -22,6 +21,8 @@ GRAY    = (107, 114, 128)
 MUTED   = (75,  85,  99)
 DARK1   = (17,  24,  39)
 GREEN   = (78,  201, 176)
+PURPLE  = (124, 58,  237)
+PURPLE2 = (167, 139, 250)
 
 def get_font(size, bold=False):
     for p in ["/System/Library/Fonts/Helvetica.ttc",
@@ -99,8 +100,7 @@ def fit_text(text, max_size, min_size, max_width, d, bold=False):
                 if current: lines.append(" ".join(current))
                 current = [word]
         if current: lines.append(" ".join(current))
-        total_h = len(lines) * int(size * 1.3)
-        if total_h <= max_size * 6:
+        if len(lines) * int(size * 1.3) <= max_size * 6:
             return f, lines
         size -= 4
     return get_font(min_size, bold), lines
@@ -132,6 +132,10 @@ def outline_pill(d, cx, y, text, font, col=ORANGE, pad_x=60, h=54):
                          radius=h//2, fill=BG2, outline=col, width=3)
     d.text((cx, y+h//2), text, font=font, fill=col, anchor="mm")
     return y + h
+
+# ═══════════════════════════════════════════════════════════════════════
+# Story renderers
+# ═══════════════════════════════════════════════════════════════════════
 
 def render_tip_repurpose(data):
     img, d, W, H = story_base()
@@ -179,21 +183,85 @@ def render_poll(data):
         if i == 1:
             outline_pill(d, W//2, y, opt, f_opt, pad_x=120, h=110)
         else:
-            pill(d, W//2, y, opt, f_opt,
-                 bg=ORANGE, fg=BG, pad_x=120, h=110)
+            pill(d, W//2, y, opt, f_opt, bg=ORANGE, fg=BG, pad_x=120, h=110)
         y += 130
     y += 20
-    d.rounded_rectangle([120, y, W-120, y+80],
-                         radius=16, outline=ORANGE, width=3)
-    for x in range(120, W-120, 20):
-        d.rectangle([x+10, y,    x+18, y+3],  fill=BG)
-        d.rectangle([x+10, y+77, x+18, y+80], fill=BG)
-    d.text((W//2, y+40),
-           "+ Add poll sticker in the app",
-           font=get_font(28, True), fill=ORANGE, anchor="mm")
-    y += 80 + 30
-    d.text((W//2, y), "Comment your answer below 👇",
+    # Poll sticker reminder box
+    d.rounded_rectangle([100, y, W-100, y+100],
+                         radius=16, fill=BG2, outline=ORANGE, width=3)
+    d.text((W//2, y+30), "👆 Add Poll sticker in Instagram app",
+           font=get_font(30, True), fill=ORANGE, anchor="mm")
+    d.text((W//2, y+70), "Settings → Stickers → Poll",
+           font=get_font(26), fill=LIGHT, anchor="mm")
+    y += 120
+    d.text((W//2, y+20), "Comment your answer below 👇",
            font=get_font(36), fill=LIGHT, anchor="mm")
+    draw_handle(d, W, H-60)
+    return img
+
+def render_quiz(data):
+    """Quiz story — question with 4 options, correct answer indicated."""
+    img, d, W, H = story_base()
+    draw_logo(d, W//2, 100, size=110)
+
+    # Header
+    pill(d, W//2, 310, "DEV QUIZ",
+         get_font(30, True), bg=PURPLE, fg=WHITE, pad_x=80, h=60)
+
+    # Question
+    q = data.get("question", "")
+    f_q, q_lines = fit_text(q, 70, 50, W-140, d, bold=True)
+    q_h = int(f_q.size * 1.4)
+    y = draw_centred_lines(d, q_lines, f_q, 420, q_h,
+                           colours=[WHITE]*10, W=W)
+    y += 50
+
+    # 4 answer options
+    options      = data.get("options", ["A", "B", "C", "D"])
+    correct_idx  = data.get("correct_index", 0)
+    f_opt        = get_font(44, True)
+    f_letter     = get_font(36, True)
+
+    for i, opt in enumerate(options[:4]):
+        is_correct = (i == correct_idx)
+        bg  = PURPLE if is_correct else BG2
+        fg  = WHITE
+        out = PURPLE if is_correct else GRAY
+
+        # Option pill
+        d.rounded_rectangle([80, y, W-80, y+96],
+                             radius=48, fill=bg, outline=out, width=3)
+
+        # Letter badge
+        letters = ["A", "B", "C", "D"]
+        letter_bg = ORANGE if is_correct else GRID
+        d.ellipse([96, y+18, 96+60, y+78], fill=letter_bg)
+        d.text((126, y+48), letters[i],
+               font=f_letter, fill=WHITE, anchor="mm")
+
+        # Option text
+        f_t, t_lines = fit_text(opt, 42, 32, W-280, d)
+        ty = y + 48 - int(f_t.size * len(t_lines) * 0.6)
+        for tl in t_lines[:2]:
+            d.text((180, ty), tl, font=f_t, fill=fg)
+            ty += int(f_t.size * 1.3)
+
+        # Correct indicator
+        if is_correct:
+            d.text((W-110, y+48), "✓",
+                   font=get_font(48, True), fill=GREEN, anchor="mm")
+
+        y += 120
+
+    # Quiz sticker reminder
+    y += 10
+    d.rounded_rectangle([100, y, W-100, y+100],
+                         radius=16, fill=BG2, outline=PURPLE, width=3)
+    d.text((W//2, y+30), "👆 Add Quiz sticker in Instagram app",
+           font=get_font(30, True), fill=PURPLE2, anchor="mm")
+    d.text((W//2, y+70), "Settings → Stickers → Quiz",
+           font=get_font(26), fill=LIGHT, anchor="mm")
+
     draw_handle(d, W, H-60)
     return img
 
@@ -238,14 +306,10 @@ def render_behind_scenes(data):
         if line == "":
             y_term += 16
             continue
-        if line.startswith("#"):
-            col = (106,153,85)
-        elif "✓" in line:
-            col = GREEN
-        elif line.startswith("→"):
-            col = ORANGE
-        else:
-            col = (204,204,204)
+        if line.startswith("#"):   col = (106,153,85)
+        elif "✓" in line:          col = GREEN
+        elif line.startswith("→"): col = ORANGE
+        else:                       col = (204,204,204)
         d.text((64, y_term), line, font=f_term, fill=col)
         y_term += 42
     disc_y = term_y + term_h + 30
@@ -289,7 +353,7 @@ def render_reel_teaser(data):
     draw_handle(d, W, H-96)
     return img
 
-def render_weekly_roundup(data, slide_num=1, total_slides=3):
+def render_weekly_roundup(data, slide_num=1, total_slides=2):
     img, d, W, H = story_base()
     pill(d, W//2, 80, f"Week in review  ·  {slide_num} / {total_slides}",
          get_font(30, True), pad_x=80, h=60)
@@ -313,9 +377,9 @@ def render_weekly_roundup(data, slide_num=1, total_slides=3):
                 ty += int(f_t.size * 1.3)
             y_pos = max(y_pos + 100, ty + 20)
         d.rectangle([80, y_pos+20, W-80, y_pos+23], fill=GRID)
-        d.text((W//2, y_pos+60), "Swipe for this week's best stat →",
+        d.text((W//2, y_pos+60), "Swipe for next week's teaser →",
                font=get_font(34), fill=LIGHT, anchor="mm")
-    elif slide_num == 3:
+    elif slide_num == 2:
         d.text((W//2, 210), "Coming next week",
                font=get_font(54, True), fill=WHITE, anchor="mm")
         teaser = data.get("teaser", "")
@@ -332,6 +396,10 @@ def render_weekly_roundup(data, slide_num=1, total_slides=3):
     draw_handle(d, W, H-96)
     return img
 
+# ═══════════════════════════════════════════════════════════════════════
+# Content generation
+# ═══════════════════════════════════════════════════════════════════════
+
 def generate_story_content(client, story_type, parent_post=None):
     parent_ctx = ""
     if parent_post:
@@ -345,7 +413,6 @@ Parent feed post:
         "tip_repurpose": f"""You are creating a tip repurpose Instagram Story for @ask.claudeai.
 {parent_ctx}
 Extract the single most valuable standalone insight. Make it punchy and worth saving.
-
 Return ONLY valid JSON:
 {{
   "tip_text": "the main tip in 8-12 words",
@@ -356,7 +423,6 @@ Return ONLY valid JSON:
         "poll": f"""You are creating a poll Instagram Story for @ask.claudeai.
 {parent_ctx}
 Create an engaging either/or poll for developers. No obvious right answer.
-
 Return ONLY valid JSON:
 {{
   "question": "poll question (max 10 words)",
@@ -364,10 +430,27 @@ Return ONLY valid JSON:
   "caption": "caption teasing the poll (1-2 lines)"
 }}""",
 
+        "quiz": f"""You are creating a developer quiz Instagram Story for @ask.claudeai.
+{parent_ctx}
+Create a genuinely educational Claude API quiz question with 4 options. One correct answer.
+The question should teach something useful even if the viewer gets it wrong.
+Return ONLY valid JSON:
+{{
+  "question": "quiz question (max 12 words, specific to Claude API)",
+  "options": [
+    "first option (max 6 words)",
+    "second option (max 6 words)",
+    "third option (max 6 words)",
+    "fourth option (max 6 words)"
+  ],
+  "correct_index": 0,
+  "explanation": "one sentence explaining why the answer is correct (max 20 words)",
+  "caption": "caption teasing the quiz (1-2 lines + hashtags)"
+}}""",
+
         "behind_scenes": f"""You are creating a behind-the-scenes Instagram Story for @ask.claudeai.
 {parent_ctx}
 Show how this post was generated. Create realistic prompt lines.
-
 Return ONLY valid JSON:
 {{
   "prompt_preview": [
@@ -392,15 +475,13 @@ Return ONLY valid JSON:
         "reel_teaser": f"""You are creating a Reel teaser Instagram Story for @ask.claudeai.
 {parent_ctx}
 Tease today's Reel to drive views.
-
 Return ONLY valid JSON:
 {{
   "topic": "reel topic in 6-10 words (punchy, makes them want to watch)",
   "caption": "caption driving to the reel (1-2 lines)"
 }}""",
 
-        "weekly_roundup": f"""You are creating a 3-slide weekly roundup for @ask.claudeai.
-
+        "weekly_roundup": f"""You are creating a 2-slide weekly roundup for @ask.claudeai.
 Return ONLY valid JSON:
 {{
   "slide1": {{
@@ -411,10 +492,6 @@ Return ONLY valid JSON:
     ]
   }},
   "slide2": {{
-    "stat_number": "a number like 847 or 2.1k",
-    "stat_description": "what this number represents (max 10 words)"
-  }},
-  "slide3": {{
     "teaser": "teaser for next week in 6-8 words"
   }},
   "caption": "weekly roundup caption (2-3 lines)"
@@ -436,6 +513,7 @@ def get_story_type_for_today(strategy):
         "tuesday":   "poll",
         "wednesday": "behind_scenes",
         "thursday":  "reel_teaser",
+        "friday":    "quiz",
         "sunday":    "weekly_roundup"
     })
     return mapping.get(day, "tip_repurpose")
@@ -458,6 +536,51 @@ def find_latest_published_post():
         return None
     candidates.sort(key=lambda x: x[0], reverse=True)
     return candidates[0][2]
+
+# Manual action instructions per story type
+MANUAL_ACTIONS = {
+    "poll": {
+        "required": True,
+        "action":   "Add Poll sticker",
+        "steps": [
+            "Open Instagram Stories",
+            "Tap the Sticker icon (smiley face)",
+            "Select 'Poll'",
+            f"Set the two options to match your post",
+            "Position the sticker on the image"
+        ]
+    },
+    "quiz": {
+        "required": True,
+        "action":   "Add Quiz sticker",
+        "steps": [
+            "Open Instagram Stories",
+            "Tap the Sticker icon (smiley face)",
+            "Select 'Quiz'",
+            "Enter the question and 4 answers",
+            "Mark the correct answer",
+            "Position the sticker on the image"
+        ]
+    },
+    "reel_teaser": {
+        "required": False,
+        "action":   "Add Link sticker (optional)",
+        "steps": [
+            "Open the Story after posting",
+            "Tap 'Add Link' sticker",
+            "Paste your Reel URL",
+            "Position above the 'Watch the Reel' button"
+        ]
+    },
+    "behind_scenes": {
+        "required": False,
+        "action":   "Add Link sticker to parent post (optional)",
+        "steps": [
+            "Copy the parent feed post URL",
+            "Add a Link sticker pointing to it"
+        ]
+    }
+}
 
 def generate_story(story_type=None):
     client   = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
@@ -493,6 +616,12 @@ def generate_story(story_type=None):
         img.save(path, "PNG", optimize=True)
         image_paths.append(path)
 
+    elif story_type == "quiz":
+        img  = render_quiz(data)
+        path = f"{story_dir}/story_01.png"
+        img.save(path, "PNG", optimize=True)
+        image_paths.append(path)
+
     elif story_type == "behind_scenes":
         img  = render_behind_scenes(data)
         path = f"{story_dir}/story_01.png"
@@ -508,7 +637,7 @@ def generate_story(story_type=None):
     elif story_type == "weekly_roundup":
         slides_to_render = [
             (1, data.get("slide1", {})),
-            (3, data.get("slide3", {})),
+            (2, data.get("slide2", {})),
         ]
         for slide_num, slide_data in slides_to_render:
             img  = render_weekly_roundup(slide_data,
@@ -519,6 +648,11 @@ def generate_story(story_type=None):
             image_paths.append(path)
 
     print(f"Rendered {len(image_paths)} image(s)")
+
+    # Get manual action instructions for this story type
+    manual_action = MANUAL_ACTIONS.get(story_type, {
+        "required": False, "action": None, "steps": []
+    })
 
     date_str = datetime.now().strftime("%Y-%m-%d")
     filename = f"queue/stories/{date_str}_{post_id}.json"
@@ -534,6 +668,7 @@ def generate_story(story_type=None):
         "imgbb_url":          None,
         "cloudinary_story_urls": [],
         "parent_post_id":     parent_post.get("id") if parent_post else None,
+        "manual_action":      manual_action,
         "generation_inputs": {
             "story_type":   story_type,
             "parent_topic": parent_post.get("post",{}).get("topic","") if parent_post else ""
@@ -574,7 +709,8 @@ def generate_story(story_type=None):
         json.dump(queue_entry, f, indent=2)
 
     print(f"\nStory saved: {filename}")
-    print(f"Preview: open {story_dir}/")
+    if manual_action.get("required"):
+        print(f"⚠️  Manual action required after posting: {manual_action['action']}")
     return filename, queue_entry
 
 if __name__ == "__main__":

@@ -223,6 +223,35 @@ HTML = """
                     <div class="caption-preview">{{ post.post.caption[:400] }}{% if post.post.caption|length > 400 %}...{% endif %}</div>
                     <div class="hashtags">{{ post.post.hashtags | join(' ') }}</div>
                     <div class="timing">Recommended: <span>{{ post.scheduling.recommended_day }} at {{ post.scheduling.recommended_time_utc }} UTC</span></div>
+{% if post.manual_action and post.manual_action.required %}
+                    <div style="background:#1C1917;border:1px solid #F97316;border-radius:10px;padding:12px 16px;margin-bottom:8px">
+                        <div style="font-size:11px;font-weight:700;color:#F97316;margin-bottom:6px">
+                            ⚠️ Manual action required after posting
+                        </div>
+                        <div style="font-size:13px;font-weight:600;color:#E6EDF3;margin-bottom:6px">
+                            {{ post.manual_action.action }}
+                        </div>
+                        {% for step in post.manual_action.steps %}
+                        <div style="font-size:12px;color:#8B949E;margin-bottom:2px">
+                            {{ loop.index }}. {{ step }}
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% elif post.manual_action and not post.manual_action.required and post.manual_action.action %}
+                    <div style="background:#161B22;border:1px solid #30363D;border-radius:10px;padding:10px 14px;margin-bottom:8px">
+                        <div style="font-size:11px;color:#8B949E">
+                            💡 Optional: {{ post.manual_action.action }}
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% if post.content_type == 'reel' and post.post.audio_suggestion %}
+                    <div style="background:#161B22;border:1px solid #30363D;border-radius:10px;padding:10px 14px;margin-bottom:8px">
+                        <div style="font-size:11px;color:#8B949E">
+                            🎵 Suggested audio: <span style="color:#F97316;font-weight:600">{{ post.post.audio_suggestion }}</span>
+                            — add manually in the Instagram app after posting
+                        </div>
+                    </div>
+                    {% endif %}
                     <div class="actions">
                         {% if post.status == 'pending' %}
                         <a href="/approve/{{ post.id }}" class="btn btn-approve">Approve</a>
@@ -509,7 +538,48 @@ def approve(post_id):
 
 @app.route("/reject/<post_id>")
 def reject(post_id):
-    update_status(post_id, "rejected")
+    path, post = find_post_file(post_id)
+    if not post:
+        return redirect(url_for("index", filter="pending"))
+
+    content_type = post.get("content_type", "static")
+    story_type   = post.get("story_type")
+
+    # Delete the queue file
+    try:
+        os.remove(path)
+        print(f"Deleted rejected post: {path}")
+    except Exception as e:
+        print(f"Could not delete file: {e}")
+
+    # Trigger GitHub Actions to regenerate a replacement
+    github_token = os.getenv("GITHUB_TOKEN")
+    github_repo  = os.getenv("GITHUB_REPO")
+
+    if github_token and github_repo:
+        try:
+            payload = {
+                "event_type": "regenerate_content",
+                "client_payload": {
+                    "content_type": content_type,
+                    "story_type":   story_type
+                }
+            }
+            r = requests.post(
+                f"https://api.github.com/repos/{github_repo}/dispatches",
+                headers={
+                    "Authorization": f"token {github_token}",
+                    "Accept":        "application/vnd.github.v3+json"
+                },
+                json=payload
+            )
+            if r.status_code == 204:
+                print(f"Regeneration triggered for {content_type}")
+            else:
+                print(f"Regeneration dispatch failed: {r.status_code}")
+        except Exception as e:
+            print(f"Could not trigger regeneration: {e}")
+
     return redirect(url_for("index", filter="pending"))
 
 @app.route("/edit", methods=["POST"])

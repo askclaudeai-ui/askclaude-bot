@@ -95,7 +95,8 @@
       "tuesday": "poll",
       "wednesday": "behind_scenes",
       "thursday": "reel_teaser",
-      "sunday": "weekly_roundup"
+      "sunday": "weekly_roundup",
+      "friday": "quiz"
     },
     "optimal_post_hour_utc": 18,
     "poll_style": "either_or",
