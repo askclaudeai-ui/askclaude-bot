@@ -10,19 +10,21 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-BG      = (13,  17,  23)
-BG2     = (17,  24,  39)
-GRID    = (28,  35,  51)
-ORANGE  = (249, 115, 22)
-ORANGE2 = (251, 146, 60)
+BG      = (255, 243, 208)
+BG2     = (255, 232, 150)
+GRID    = (210, 180,  80)
+ORANGE  = (217, 119,   6)
+ORANGE2 = (234, 179,   8)
 WHITE   = (255, 255, 255)
-LIGHT   = (209, 213, 219)
-GRAY    = (107, 114, 128)
-MUTED   = (75,  85,  99)
-DARK1   = (17,  24,  39)
+LIGHT   = (30,  27,  75)
+GRAY    = (61,  56,  120)
+MUTED   = (61,  56,  120)
+DARK1   = (30,  27,  75)
 GREEN   = (78,  201, 176)
-PURPLE  = (124, 58,  237)
-PURPLE2 = (167, 139, 250)
+PURPLE  = (55,  48,  163)
+PURPLE2 = (79,  70,  229)
+TEXT    = (30,  27,  75)
+GOLD = (217, 119, 6)
 
 def get_font(size, bold=False):
     for p in ["/System/Library/Fonts/Helvetica.ttc",
@@ -58,8 +60,8 @@ def story_base():
     img = Image.new("RGB", (W, H), BG)
     d   = ImageDraw.Draw(img)
     draw_grid(d, W, H)
-    d.rectangle([0, 0,   W, 8],  fill=ORANGE)
-    d.rectangle([0, H-8, W, H],  fill=(*ORANGE, 80))
+    d.rectangle([0, 0,   W, 8],  fill=PURPLE)
+    d.rectangle([0, H-8, W, H],  fill=GOLD)
     return img, d, W, H
 
 def draw_logo(d, cx, y, size=110):

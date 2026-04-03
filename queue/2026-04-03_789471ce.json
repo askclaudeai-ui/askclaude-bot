@@ -1,0 +1,217 @@
+{
+  "id": "789471ce",
+  "content_type": "carousel",
+  "status": "pending",
+  "created_at": "2026-04-03T16:05:09.163267",
+  "published_at": null,
+  "instagram_media_id": null,
+  "imgbb_url": "https://i.ibb.co/8DZrdgMR/62655261ccd6.png",
+  "imgbb_slide_urls": [
+    "https://i.ibb.co/8DZrdgMR/62655261ccd6.png",
+    "https://i.ibb.co/cK2Km2c1/2efe1d426e21.png",
+    "https://i.ibb.co/1fLQMxY7/c9e5e4bc4624.png",
+    "https://i.ibb.co/YsD62tg/1d102fa48c4a.png",
+    "https://i.ibb.co/7dD8nW4F/8ce84102420e.png",
+    "https://i.ibb.co/21q7bFSG/ec806f4369c5.png"
+  ],
+  "generation_inputs": {
+    "strategy_snapshot": {
+      "model_phase": "bootstrap",
+      "timing": {
+        "preferred_days": [
+          {
+            "day": "thursday",
+            "score": 0.8,
+            "best_for": "reel"
+          }
+        ],
+        "preferred_hours_utc": [
+          13,
+          9,
+          18
+        ],
+        "weekly_cadence": {
+          "monday": "static",
+          "wednesday": "carousel",
+          "thursday": "reel"
+        }
+      },
+      "content_format": {
+        "format_weights": {
+          "reel": 0.5,
+          "carousel": 0.32,
+          "static": 0.18
+        },
+        "reel_optimal_duration_s": 22,
+        "carousel_optimal_slides": 6
+      }
+    },
+    "trend_report": {
+      "trending_topics": [
+        "AI-powered content creation and automation tools",
+        "Claude and LLM integration tutorials",
+        "Educational programming content and quick tips",
+        "Developer productivity hacks and workflows",
+        "Tech industry insights and behind-the-scenes content"
+      ],
+      "hashtags": {
+        "primary": [
+          "#ai",
+          "#programming",
+          "#developer"
+        ],
+        "niche": [
+          "#claude",
+          "#llm",
+          "#machinelearning",
+          "#artificialintelligence",
+          "#chatgpt",
+          "#aitools",
+          "#openai",
+          "#coding",
+          "#softwareengineering",
+          "#techcommunity"
+        ],
+        "evergreen": [
+          "#tech",
+          "#innovation",
+          "#tutorial",
+          "#productivity",
+          "#learntocode"
+        ]
+      },
+      "best_posting_times": [
+        {
+          "day": "tuesday",
+          "time_utc": "14:00",
+          "reason": "Peak developer activity during lunch break and afternoon work hours"
+        },
+        {
+          "day": "wednesday",
+          "time_utc": "13:00",
+          "reason": "Mid-week engagement peak when developers are most active"
+        },
+        {
+          "day": "thursday",
+          "time_utc": "20:00",
+          "reason": "Evening peak when developers unwind and consume educational content"
+        },
+        {
+          "day": "monday",
+          "time_utc": "10:00",
+          "reason": "Monday morning engagement as developers catch up on latest trends"
+        }
+      ],
+      "trending_audio": [
+        "Cha Cha Cha - Bruno Mars",
+        "360 orchestral cover",
+        "DAISIES - Justin Bieber",
+        "Original audio tracks for tutorials"
+      ],
+      "top_hook_styles": [
+        "Did you know that... (curiosity gap opener)",
+        "Stop scrolling if this sounds like you... (direct address)",
+        "3 mistakes everyone makes when... (numbered list format)",
+        "POV: You just discovered... (point of view format)",
+        "Everything you knew about [topic] is WRONG (contrarian hook)"
+      ],
+      "viral_formats": [
+        "Educational carousel posts with step-by-step tutorials",
+        "Short-form Reels with quick tips and code snippets",
+        "Behind-the-scenes developer workflow content",
+        "Problem-solution format Reels"
+      ],
+      "research_date": "2026-03-29"
+    },
+    "topic_cluster": "claude_api",
+    "hook_style_used": "number_list"
+  },
+  "post": {
+    "topic": "essential Claude API optimization techniques for developers",
+    "hook": "4 Claude API tricks that will save you hours of debugging time",
+    "caption": "4 Claude API tricks that will save you hours of debugging time\n\nSave this carousel for your next Claude API project.",
+    "hashtags": [
+      "#claudeai",
+      "#anthropic",
+      "#aidev",
+      "#llm",
+      "#pythondev",
+      "#apidevelopment",
+      "#aiintegration",
+      "#machinelearning",
+      "#codinglife",
+      "#devtips",
+      "#programming",
+      "#artificialintelligence",
+      "#developer",
+      "#techstack",
+      "#buildwithclaude",
+      "#promptengineering",
+      "#automation",
+      "#aitools"
+    ],
+    "audio_suggestion": "original audio",
+    "slides": [
+      {
+        "type": "cover",
+        "title": "Claude API Power Tips",
+        "subtitle": "Optimization tricks every developer needs"
+      },
+      {
+        "type": "content",
+        "tip_number": 1,
+        "title": "Use Cache Control",
+        "body": "Cache repeated prompts with cache_control to reduce latency and costs. Perfect for system prompts and contexts you reuse.",
+        "code_snippet": "message = {\n  \"role\": \"user\",\n  \"content\": [{\n    \"type\": \"text\",\n    \"text\": prompt,\n    \"cache_control\": {\"type\": \"ephemeral\"}\n  }]\n}"
+      },
+      {
+        "type": "content",
+        "tip_number": 2,
+        "title": "Stream Long Responses",
+        "body": "Use streaming for better UX with long responses. Users see content immediately instead of waiting for completion.",
+        "code_snippet": "stream = client.messages.create(\n  model=\"claude-3-sonnet-20240229\",\n  messages=[{\"role\": \"user\", \"content\": prompt}],\n  stream=True\n)"
+      },
+      {
+        "type": "content",
+        "tip_number": 3,
+        "title": "Handle Rate Limits",
+        "body": "Implement exponential backoff for rate limit errors. Prevents request failures and maintains smooth operation.",
+        "code_snippet": "import time\nfrom anthropic import RateLimitError\n\ntry:\n  response = client.messages.create(...)\nexcept RateLimitError:\n  time.sleep(2 ** attempt)"
+      },
+      {
+        "type": "content",
+        "tip_number": 4,
+        "title": "Set Max Tokens",
+        "body": "Always specify max_tokens to control response length and costs. Prevents unexpectedly long outputs from breaking your budget.",
+        "code_snippet": "response = client.messages.create(\n  model=\"claude-3-sonnet-20240229\",\n  max_tokens=1000,\n  messages=[{\"role\": \"user\", \"content\": prompt}]\n)"
+      },
+      {
+        "type": "cta",
+        "title": "Save This Post!",
+        "body": "Follow @ask.claudeai for more Claude API tips and save this for your next project."
+      }
+    ],
+    "slide_count": 6,
+    "image_paths": [
+      "queue/images/789471ce/slide_01.png",
+      "queue/images/789471ce/slide_02.png",
+      "queue/images/789471ce/slide_03.png",
+      "queue/images/789471ce/slide_04.png",
+      "queue/images/789471ce/slide_05.png",
+      "queue/images/789471ce/slide_06.png"
+    ]
+  },
+  "scheduling": {
+    "recommended_day": "thursday",
+    "recommended_time_utc": "13:00",
+    "actual_publish_day": null,
+    "actual_publish_time_utc": null,
+    "timing_deviation_hours": null
+  },
+  "model_prediction": {
+    "predicted_engagement_rate": null,
+    "predicted_reach": null,
+    "prediction_confidence": null,
+    "model_phase_at_prediction": "bootstrap"
+  }
+}
