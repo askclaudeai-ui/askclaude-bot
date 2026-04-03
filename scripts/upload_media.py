@@ -109,3 +109,29 @@ def upload_all_story_images(image_paths):
             print(f"  Story slide upload failed: {e}")
             urls.append(None)
     return urls
+
+def upload_image_cloudinary_feed(image_path):
+    """Upload feed/carousel preview image to Cloudinary (works in emails)."""
+    if not CLOUDINARY_CLOUD:
+        raise Exception("Cloudinary not configured")
+    import time, hashlib
+    timestamp  = str(int(time.time()))
+    fname      = os.path.basename(image_path).replace('.png','').replace('.jpg','')
+    public_id  = f"askclaude_feed/{fname}_{timestamp}"
+    params_str = f"public_id={public_id}&timestamp={timestamp}"
+    sig = hashlib.sha1((params_str + CLOUDINARY_SECRET).encode()).hexdigest()
+    with open(image_path, "rb") as f:
+        r = requests.post(
+            f"https://api.cloudinary.com/v1_1/{CLOUDINARY_CLOUD}/image/upload",
+            data={
+                "api_key":   CLOUDINARY_API_KEY,
+                "timestamp": timestamp,
+                "public_id": public_id,
+                "signature": sig,
+            },
+            files={"file": f}
+        )
+    result = r.json()
+    if "secure_url" in result:
+        return result["secure_url"]
+    raise Exception(f"Cloudinary feed image upload failed: {result}")

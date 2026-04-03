@@ -228,22 +228,19 @@ Return ONLY valid JSON:
     print(f"\nCAPTION PREVIEW:\n{post_data.get('caption','')[:200]}...")
 
     # Upload image to ImgBB if it exists
+    # Upload image to Cloudinary (works in emails, no hotlink restrictions)
     image_path = f"queue/images/{post_id}.png"
     if os.path.exists(image_path):
         try:
-            imgbb_key = os.getenv("IMGBB_API_KEY")
-            with open(image_path, "rb") as f:
-                encoded = base64.b64encode(f.read()).decode("utf-8")
-            r      = requests.post("https://api.imgbb.com/1/upload",
-                                   data={"key": imgbb_key, "image": encoded})
-            result = r.json()
-            if result.get("success"):
-                queue_entry["imgbb_url"] = result["data"]["url"]
-                with open(filename, "w") as f:
-                    json.dump(queue_entry, f, indent=2)
-                print(f"Image uploaded: {queue_entry['imgbb_url']}")
+            from upload_media import upload_image_cloudinary_feed
+            url = upload_image_cloudinary_feed(image_path)
+            queue_entry["imgbb_url"] = url   # reuse imgbb_url field for compatibility
+            queue_entry["cloudinary_image_url"] = url
+            with open(filename, "w") as f:
+                json.dump(queue_entry, f, indent=2)
+            print(f"Image uploaded to Cloudinary: {url}")
         except Exception as e:
-            print(f"ImgBB upload skipped: {e}")
+            print(f"Cloudinary upload skipped: {e}")
 
     # Email notification
     try:
