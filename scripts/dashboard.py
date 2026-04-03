@@ -21,6 +21,32 @@ HTML = """
     <title>Ask Claude — Dashboard</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    /* Force light text on dark backgrounds */
+        .post-card, .modal, .stat, .tab, .empty { color: #E6EDF3 !important; }
+        .hook        { color: #D97706 !important; }
+        .topic       { color: #8B949E !important; }
+        .timing      { color: #8B949E !important; }
+        .hashtags    { color: #6B7280 !important; }
+        .post-date   { color: #8B949E !important; }
+        .section-title { color: #E6EDF3 !important; }
+        .caption-preview { color: #C9D1D9 !important; background: #0D1117 !important; }
+        .feedback-hint   { color: #8B949E !important; }
+        .char-count      { color: #8B949E !important; }
+        .form-group label { color: #8B949E !important; }
+        .form-group input,
+        .form-group textarea {
+            background: #0D1117 !important;
+            color: #E6EDF3 !important;
+            border-color: #30363D !important;
+        }
+        .manual-action-step  { color: #C9D1D9 !important; }
+        .audio-suggestion    { color: #8B949E !important; background: #0D1117 !important; }
+        .manual-action-optional { color: #8B949E !important; background: #0D1117 !important; }
+        .preview-label { color: #8B949E !important; }
+        .empty p { color: #8B949E !important; }
+        .stat-label { color: #8B949E !important; }
+        .stat-num   { color: #D97706 !important; }
+        .header-date { color: #8B949E !important; }
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
 
