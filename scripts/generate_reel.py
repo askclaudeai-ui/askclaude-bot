@@ -5,6 +5,8 @@ import re
 import uuid
 import requests
 import sys
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from strategy_summary import get_strategy_summary
 from datetime import datetime
 from PIL import Image, ImageDraw, ImageFont
 from dotenv import load_dotenv
@@ -229,12 +231,16 @@ def render_reel_frame(scene, post_id, scene_num, total_scenes,
     return img
 
 def generate_voiceover_script(client, trends):
+    strategy_summary = get_strategy_summary()
     trend_ctx = ""
     if trends:
         trend_ctx = f"Trending: {', '.join(trends.get('trending_topics',[])[:3])}"
 
     prompt = f"""You are writing a calm, educational voiceover for a 28-32 second Instagram Reel for @ask.claudeai.
 The reel teaches ONE Claude API technique as a live coding tutorial.
+
+STRATEGY:
+{strategy_summary}
 
 {trend_ctx}
 

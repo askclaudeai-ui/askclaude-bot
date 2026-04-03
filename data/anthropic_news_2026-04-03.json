@@ -1,0 +1,82 @@
+{
+  "headlines": [
+    {
+      "title": "Claude Sonnet 4.6 and Opus 4.6 Released with 1M Context",
+      "summary": "New flagship models with 1M context windows, adaptive thinking, and enhanced performance",
+      "category": "model_release",
+      "relevance_for_devs": "Major upgrade with 1M context and improved API capabilities"
+    },
+    {
+      "title": "Message Batches API Raised to 300k Output Tokens",
+      "summary": "Batch API now supports up to 300k output tokens for Opus/Sonnet 4.6",
+      "category": "api_update",
+      "relevance_for_devs": "Enables much longer single-turn outputs in batch processing"
+    },
+    {
+      "title": "Automatic Caching for Messages API",
+      "summary": "Single cache_control field enables automatic cache management without manual breakpoints",
+      "category": "api_update",
+      "relevance_for_devs": "Simplifies prompt caching implementation significantly"
+    },
+    {
+      "title": "Data Residency Controls with inference_geo Parameter",
+      "summary": "Choose US-only inference routing at 1.1x pricing for newer models",
+      "category": "api_update",
+      "relevance_for_devs": "Compliance-focused API parameter for geographic data handling"
+    },
+    {
+      "title": "Claude Code 2.2.0+ Adds Skills and Channel Features",
+      "summary": "Agent Skills beta, channel-based permissions, and improved stability fixes",
+      "category": "product",
+      "relevance_for_devs": "New extensibility features for development workflows"
+    },
+    {
+      "title": "Anthropic Economic Index Shows AI Labor Impact",
+      "summary": "Research reveals AI usage patterns and limited employment effects to date",
+      "category": "research",
+      "relevance_for_devs": "Insights into real-world AI adoption patterns"
+    },
+    {
+      "title": "Emotion Concepts Research in Large Language Models",
+      "summary": "Latest interpretability research explores how Claude processes emotional concepts internally",
+      "category": "research",
+      "relevance_for_devs": "Understanding model internal representations for better prompting"
+    },
+    {
+      "title": "Structured Outputs Moved to output_config.format",
+      "summary": "API parameter migration from output_format to new output_config structure",
+      "category": "api_update",
+      "relevance_for_devs": "Breaking change requiring code updates for structured outputs"
+    },
+    {
+      "title": "Fast Mode for Opus 4.6 at Premium Pricing",
+      "summary": "2.5x faster inference for Opus at $30/$150 per million tokens",
+      "category": "api_update",
+      "relevance_for_devs": "Speed optimization option for time-sensitive applications"
+    },
+    {
+      "title": "Models API Returns Capability Fields",
+      "summary": "GET /v1/models now includes max_input_tokens, max_tokens, and capabilities object",
+      "category": "api_update",
+      "relevance_for_devs": "Programmatic access to model specifications and limits"
+    }
+  ],
+  "new_topics_for_content": [
+    "Implementing automatic caching with single cache_control field",
+    "Migrating from output_format to output_config.format",
+    "Using adaptive thinking vs manual extended thinking",
+    "Data residency controls with inference_geo parameter",
+    "Leveraging 1M context windows for large document processing",
+    "Claude Skills development and deployment patterns",
+    "Web search dynamic filtering with 4.6 models",
+    "Context compaction for infinite conversation handling",
+    "Model capability introspection via Models API",
+    "Batch API optimization with 300k output tokens"
+  ],
+  "top_3_this_week": [
+    "Claude Sonnet 4.6 and Opus 4.6 released with 1M context windows and adaptive thinking capabilities",
+    "Message Batches API enhanced with 300k output token limit and automatic caching features",
+    "Major Claude Code updates with Skills beta, channel permissions, and improved development workflows"
+  ],
+  "fetched_at": "2026-04-03T14:24:04.944649"
+}

@@ -8,7 +8,13 @@ load_dotenv()
 
 def research_trends():
     client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
-
+    # Check if today's trend report already exists — skip if so
+    today     = datetime.now().strftime("%Y-%m-%d")
+    cached    = f"data/trends_{today}.json"
+    if os.path.exists(cached):
+        print(f"Trend report already exists for today: {cached}")
+        with open(cached, "r") as f:
+            return json.load(f)
     prompt = """You are a social media strategist specialising in developer content on Instagram.
 
 Research the current Instagram landscape for developer and AI content and provide a trend report covering:

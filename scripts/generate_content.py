@@ -6,6 +6,7 @@ import re
 import uuid
 from datetime import datetime
 from dotenv import load_dotenv
+from strategy_summary import get_strategy_summary
 
 load_dotenv()
 
@@ -72,8 +73,8 @@ Current trending topics: {', '.join(trends.get('trending_topics', [])[:3])}
 Top hook styles performing well: {', '.join(trends.get('top_hook_styles', [])[:2])}
 Trending audio suggestion: {trends.get('trending_audio', ['original audio'])[0]}
 """
-
-    prompt = f"""You are a social media content creator for @askclaude — an Instagram page that posts Claude API tips and tricks for developers.
+    strategy_summary = get_strategy_summary()
+    prompt = f"""You are a social media content creator for @askclaudeai — an Instagram page that posts Claude API tips and tricks for developers.
 
 CONTENT TYPE: {content_type} post
 TOPIC POOL: {', '.join(all_topics[:5])}
@@ -82,6 +83,9 @@ CAPTION LENGTH: {word_count['min']}-{word_count['max']} words
 CTA STYLE: {caption_config['cta_style']}
 EMOJI DENSITY: {caption_config['emoji_density']}
 LINE BREAK STYLE: {caption_config['line_break_style']}
+
+STRATEGY:
+{strategy_summary}
 
 TREND CONTEXT:
 {trend_context}

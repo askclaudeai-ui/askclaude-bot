@@ -154,30 +154,65 @@ Return ONLY the complete updated strategy.json as valid JSON. No explanation, no
 def generate_weekly_report(client, current_strategy, new_strategy,
                             performance_summary, analysis,
                             feed_insights, story_insights):
-    """Ask Claude to write the weekly narrative report."""
+    """Weekly report with performance + Anthropic news digest."""
+
+    # Load latest Anthropic news if available
+    news_digest = ""
+    import glob
+    news_files = sorted(glob.glob("data/anthropic_news_*.json"))
+    if news_files:
+        try:
+            with open(news_files[-1], "r") as f:
+                news_data = json.load(f)
+            top3 = news_data.get("top_3_this_week", [])
+            if top3:
+                news_digest = "LATEST ANTHROPIC NEWS THIS WEEK:\n"
+                for item in top3:
+                    news_digest += f"• {item}\n"
+        except:
+            pass
+
+    # Load topic guide for context
+    topic_context = ""
+    if os.path.exists("data/topic_guide.json"):
+        with open("data/topic_guide.json", "r") as f:
+            guide = json.load(f)
+        pillars = [p["pillar"] for p in guide.get("content_pillars", [])]
+        topic_context = f"Content pillars: {', '.join(pillars)}"
 
     prompt = f"""You are writing the weekly performance report for @ask.claudeai — a Claude API tips Instagram account.
 
 PERFORMANCE DATA:
 {performance_summary}
 
-Write a clear, actionable weekly report covering:
-1. What worked well this week (feed posts + stories)
-2. What underperformed and why
-3. Top 5 prioritised suggestions for next week (tag each as [feed] or [story])
-4. One thing to test next week as an experiment
+{news_digest}
 
-Keep it practical and specific. Under 400 words total.
+{topic_context}
 
-Return ONLY valid JSON:
+Write a clear, actionable weekly report. Return ONLY valid JSON:
 {{
-  "narrative": "your weekly narrative here (2-3 paragraphs)",
+  "narrative": "2-3 paragraph weekly summary covering feed posts, stories, and what worked",
+  "anthropic_news_digest": [
+    "key development 1 and why it matters for the page",
+    "key development 2 and why it matters for the page",
+    "key development 3 and why it matters for the page"
+  ],
   "suggestions": [
     {{"priority": 1, "channel": "feed", "suggestion": "specific actionable suggestion", "confidence": 0.85}},
     {{"priority": 2, "channel": "story", "suggestion": "specific actionable suggestion", "confidence": 0.72}},
     {{"priority": 3, "channel": "feed", "suggestion": "suggestion", "confidence": 0.68}},
     {{"priority": 4, "channel": "story", "suggestion": "suggestion", "confidence": 0.61}},
     {{"priority": 5, "channel": "feed", "suggestion": "suggestion", "confidence": 0.55}}
+  ],
+  "page_improvement_recommendations": [
+    "specific recommendation to improve the page's growth or engagement",
+    "another recommendation",
+    "another recommendation"
+  ],
+  "content_topics_for_next_week": [
+    "specific topic to cover based on Anthropic news",
+    "another topic from trending developments",
+    "evergreen topic for the week"
   ],
   "experiment": "one specific A/B test to run next week",
   "strategy_changes_applied": [],
@@ -186,11 +221,30 @@ Return ONLY valid JSON:
 
     message = client.messages.create(
         model="claude-sonnet-4-20250514",
-        max_tokens=2000,
+        max_tokens=2500,
         messages=[{"role": "user", "content": prompt}]
     )
 
-    return parse_claude_json(message.content[0].text)
+    try:
+        clean = message.content[0].text.strip()
+        if "```" in clean:
+            parts = clean.split("```")
+            clean = parts[1] if len(parts) > 1 else clean
+            if clean.startswith("json"): clean = clean[4:]
+        clean = re.sub(r',\s*([}\]])', r'\1', clean.strip())
+        return json.loads(clean)
+    except Exception as e:
+        print(f"Report generation failed: {e}")
+        return {
+            "narrative": "Report generation failed.",
+            "anthropic_news_digest": [],
+            "suggestions": [],
+            "page_improvement_recommendations": [],
+            "content_topics_for_next_week": [],
+            "experiment": "",
+            "strategy_changes_applied": [],
+            "strategy_changes_deferred": []
+        }
 
 def diff_strategy(old, new):
     """Find what changed between old and new strategy."""

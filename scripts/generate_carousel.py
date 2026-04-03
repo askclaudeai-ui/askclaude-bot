@@ -4,6 +4,8 @@ import os
 import re
 import uuid
 import sys
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from strategy_summary import get_strategy_summary
 from datetime import datetime
 from PIL import Image, ImageDraw, ImageFont
 from dotenv import load_dotenv
@@ -271,12 +273,16 @@ def generate_carousel():
     rec_day   = strategy["timing"]["preferred_days"][0]["day"]
     rec_hour  = f"{strategy['timing']['preferred_hours_utc'][0]:02d}:00"
     n_slides  = strategy["content_format"].get("carousel_optimal_slides", 6)
+    strategy_summary = get_strategy_summary()
     trend_ctx = ""
     if trends:
         trend_ctx = f"Trending topics: {', '.join(trends.get('trending_topics', [])[:3])}"
     prompt = f"""You are a social media content creator for @ask.claudeai — an Instagram page posting Claude API tips for developers.
 
 Create a {n_slides}-slide Instagram carousel post about Claude API for developers.
+
+STRATEGY:
+{strategy_summary}
 
 TOPIC POOL: {', '.join(topics[:5])}
 TREND CONTEXT: {trend_ctx}

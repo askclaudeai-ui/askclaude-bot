@@ -3,7 +3,8 @@
     "schema_version": "2.0.0",
     "model_phase": "bootstrap",
     "posts_in_dataset": 0,
-    "stories_in_dataset": 0
+    "stories_in_dataset": 0,
+    "last_updated": "2026-04-03T14:24:04.943103"
   },
   "timing": {
     "preferred_days": [
@@ -42,7 +43,11 @@
     ],
     "topic_cooldown_days": 14,
     "always_avoid": [],
-    "trending_boost": []
+    "trending_boost": [
+      "Implementing automatic caching with single cache_control field",
+      "Migrating from output_format to output_config.format",
+      "Using adaptive thinking vs manual extended thinking"
+    ]
   },
   "hooks": {
     "style_scores": {},
