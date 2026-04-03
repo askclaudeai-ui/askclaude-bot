@@ -21,32 +21,6 @@ HTML = """
     <title>Ask Claude — Dashboard</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    /* Force light text on dark backgrounds */
-        .post-card, .modal, .stat, .tab, .empty { color: #E6EDF3 !important; }
-        .hook        { color: #D97706 !important; }
-        .topic       { color: #8B949E !important; }
-        .timing      { color: #8B949E !important; }
-        .hashtags    { color: #6B7280 !important; }
-        .post-date   { color: #8B949E !important; }
-        .section-title { color: #E6EDF3 !important; }
-        .caption-preview { color: #C9D1D9 !important; background: #0D1117 !important; }
-        .feedback-hint   { color: #8B949E !important; }
-        .char-count      { color: #8B949E !important; }
-        .form-group label { color: #8B949E !important; }
-        .form-group input,
-        .form-group textarea {
-            background: #0D1117 !important;
-            color: #E6EDF3 !important;
-            border-color: #30363D !important;
-        }
-        .manual-action-step  { color: #C9D1D9 !important; }
-        .audio-suggestion    { color: #8B949E !important; background: #0D1117 !important; }
-        .manual-action-optional { color: #8B949E !important; background: #0D1117 !important; }
-        .preview-label { color: #8B949E !important; }
-        .empty p { color: #8B949E !important; }
-        .stat-label { color: #8B949E !important; }
-        .stat-num   { color: #D97706 !important; }
-        .header-date { color: #8B949E !important; }
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -67,7 +41,7 @@ HTML = """
         }
         .logo { font-size: 22px; font-weight: 700; color: #FFF3D0; }
         .logo span { color: #D97706; }
-        .header-date { font-size: 13px; color: #A78BFA; }
+        .header-date { font-size: 13px; color: #C4B5FD; }
 
         .container { max-width: 980px; margin: 0 auto; padding: 32px 24px; }
 
@@ -78,14 +52,13 @@ HTML = """
             margin-bottom: 32px;
         }
         .stat {
-            background: #1C2333;
-            border: 2px solid #30363D;
+            background: #161B22;
+            border: 1px solid #30363D;
             border-radius: 14px;
             padding: 20px;
             text-align: center;
-            box-shadow: 0 2px 8px rgba(55,48,163,0.08);
         }
-        .stat-num { font-size: 36px; font-weight: 700; color: #3730A3; }
+        .stat-num   { font-size: 36px; font-weight: 700; color: #D97706; }
         .stat-label { font-size: 13px; color: #8B949E; margin-top: 4px; }
 
         .tabs {
@@ -102,11 +75,10 @@ HTML = """
             cursor: pointer;
             text-decoration: none;
             color: #8B949E;
-            background: #1C2333;
-            border: 2px solid #30363D;
-            transition: all 0.15s;
+            background: #161B22;
+            border: 1px solid #30363D;
         }
-        .tab:hover { border-color: #3730A3; color: #3730A3; }
+        .tab:hover  { border-color: #D97706; color: #D97706; }
         .tab.active { background: #3730A3; color: #FFF3D0; border-color: #3730A3; }
 
         .section-title {
@@ -117,20 +89,19 @@ HTML = """
         }
 
         .post-card {
-            background: #1C2333;
-            border: 2px solid #30363D;
+            background: #161B22;
+            border: 1px solid #30363D;
             border-radius: 16px;
             margin-bottom: 20px;
             overflow: hidden;
-            box-shadow: 0 2px 12px rgba(55,48,163,0.08);
         }
         .post-header {
             padding: 14px 20px;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            border-bottom: 1px solid #E8D9A0;
-            background: #161B22;
+            border-bottom: 1px solid #30363D;
+            background: #0D1117;
         }
         .post-meta { display: flex; align-items: center; gap: 10px; }
 
@@ -145,8 +116,8 @@ HTML = """
         .badge-approved     { background: #15803D; color: #FFFFFF; }
         .badge-published    { background: #0369A1; color: #FFFFFF; }
         .badge-rejected     { background: #DC2626; color: #FFFFFF; }
-        .badge-regenerating { background: #D97706; color: #E6EDF3; }
-        .badge-type         { background: #30363D; color: #E6EDF3; }
+        .badge-regenerating { background: #D97706; color: #1E1B4B; }
+        .badge-type         { background: #21262D; color: #8B949E; }
 
         .post-date { font-size: 12px; color: #8B949E; }
 
@@ -160,10 +131,10 @@ HTML = """
         .post-image {
             border-radius: 10px;
             overflow: hidden;
-            background: #161B22;
+            background: #0D1117;
             border: 1px solid #30363D;
         }
-        .post-image img  { width: 100%; display: block; border-radius: 10px; }
+        .post-image img   { width: 100%; display: block; border-radius: 10px; }
         .post-image video { width: 100%; display: block; border-radius: 10px; }
         .no-img {
             width: 100%;
@@ -194,59 +165,46 @@ HTML = """
             width: 100%;
             margin-top: 8px;
             padding: 7px;
-            background: #30363D;
+            background: #21262D;
             color: #E6EDF3;
-            border: 2px solid #D97706;
+            border: 1px solid #D97706;
             border-radius: 8px;
             font-size: 12px;
             font-weight: 600;
             cursor: pointer;
         }
-        .regen-img-btn:hover { background: #D97706; color: #FFF3D0; }
+        .regen-img-btn:hover { background: #D97706; color: #1E1B4B; }
 
         .post-content { display: flex; flex-direction: column; gap: 12px; }
 
-        .hook { font-size: 17px; font-weight: 700; color: #3730A3; line-height: 1.4; }
-        .topic { font-size: 13px; color: #8B949E; }
+        .hook    { font-size: 17px; font-weight: 700; color: #D97706; line-height: 1.4; }
+        .topic   { font-size: 13px; color: #8B949E; }
+        .timing  { font-size: 12px; color: #8B949E; }
+        .timing span { color: #D97706; font-weight: 600; }
+        .hashtags { font-size: 12px; color: #6B7280; line-height: 1.8; }
 
         .caption-preview {
             font-size: 13px;
-            color: #E6EDF3;
+            color: #C9D1D9;
             line-height: 1.7;
-            background: #161B22;
+            background: #0D1117;
             padding: 12px 14px;
             border-radius: 10px;
             white-space: pre-wrap;
             border: 1px solid #30363D;
         }
-        .hashtags { font-size: 12px; color: #3730A3; line-height: 1.8; }
-        .timing { font-size: 12px; color: #8B949E; }
-        .timing span { color: #D97706; font-weight: 600; }
 
         .manual-action-required {
-            background: #161B22;
-            border: 2px solid #D97706;
+            background: #1C1917;
+            border: 1px solid #D97706;
             border-radius: 10px;
             padding: 12px 16px;
             margin-bottom: 8px;
         }
-        .manual-action-title {
-            font-size: 12px;
-            font-weight: 700;
-            color: #D97706;
-            margin-bottom: 6px;
-        }
-        .manual-action-name {
-            font-size: 14px;
-            font-weight: 700;
-            color: #E6EDF3;
-            margin-bottom: 6px;
-        }
-        .manual-action-step {
-            font-size: 12px;
-            color: #8B949E;
-            margin-bottom: 2px;
-        }
+        .manual-action-title { font-size: 12px; font-weight: 700; color: #D97706; margin-bottom: 6px; }
+        .manual-action-name  { font-size: 14px; font-weight: 700; color: #E6EDF3; margin-bottom: 6px; }
+        .manual-action-step  { font-size: 12px; color: #C9D1D9; margin-bottom: 2px; }
+
         .manual-action-optional {
             background: #161B22;
             border: 1px solid #30363D;
@@ -276,30 +234,28 @@ HTML = """
             cursor: pointer;
             text-decoration: none;
             display: inline-block;
-            transition: opacity 0.15s;
         }
         .btn:hover { opacity: 0.85; }
-        .btn-approve  { background: #15803D; color: white; }
-        .btn-reject   { background: #DC2626; color: white; }
+        .btn-approve  { background: #15803D; color: #FFFFFF; }
+        .btn-reject   { background: #DC2626; color: #FFFFFF; }
         .btn-edit     { background: #3730A3; color: #FFF3D0; }
-        .btn-feedback { background: #D97706; color: #E6EDF3; }
+        .btn-feedback { background: #D97706; color: #1E1B4B; }
 
         .empty {
             text-align: center;
             padding: 60px;
             color: #8B949E;
-            background: #1C2333;
+            background: #161B22;
             border-radius: 16px;
-            border: 2px solid #30363D;
+            border: 1px solid #30363D;
         }
         .empty h3 { font-size: 20px; margin-bottom: 8px; color: #E6EDF3; }
 
-        /* Spinner */
         .spinner-overlay {
             display: none;
             position: fixed;
             inset: 0;
-            background: rgba(55,48,163,0.5);
+            background: rgba(13,17,23,0.85);
             z-index: 200;
             flex-direction: column;
             align-items: center;
@@ -308,22 +264,20 @@ HTML = """
         }
         .spinner-overlay.open { display: flex; }
         .spinner {
-            width: 52px;
-            height: 52px;
-            border: 6px solid #E8D9A0;
+            width: 52px; height: 52px;
+            border: 6px solid #30363D;
             border-top-color: #D97706;
             border-radius: 50%;
             animation: spin 0.8s linear infinite;
         }
         @keyframes spin { to { transform: rotate(360deg); } }
-        .spinner-text { color: #FFF3D0; font-size: 16px; font-weight: 600; }
+        .spinner-text { color: #E6EDF3; font-size: 16px; font-weight: 600; }
 
-        /* Modals */
         .modal-overlay {
             display: none;
             position: fixed;
             inset: 0;
-            background: rgba(30,27,75,0.6);
+            background: rgba(13,17,23,0.8);
             z-index: 100;
             align-items: center;
             justify-content: center;
@@ -331,18 +285,17 @@ HTML = """
         .modal-overlay.open { display: flex; }
         .modal {
             background: #161B22;
-            border: 2px solid #30363D;
+            border: 1px solid #30363D;
             border-radius: 18px;
             padding: 28px;
             width: 90%;
             max-width: 680px;
             max-height: 88vh;
             overflow-y: auto;
-            box-shadow: 0 8px 32px rgba(55,48,163,0.2);
         }
         .modal h2 { font-size: 20px; font-weight: 700; margin-bottom: 20px; }
-        .modal h2.indigo { color: #3730A3; }
         .modal h2.gold   { color: #D97706; }
+        .modal h2.indigo { color: #A78BFA; }
 
         .form-group { margin-bottom: 16px; }
         .form-group label {
@@ -355,8 +308,8 @@ HTML = """
         .form-group input,
         .form-group textarea {
             width: 100%;
-            background: #1C2333;
-            border: 2px solid #30363D;
+            background: #0D1117;
+            border: 1px solid #30363D;
             border-radius: 10px;
             padding: 10px 14px;
             color: #E6EDF3;
@@ -366,22 +319,14 @@ HTML = """
         }
         .form-group textarea { min-height: 120px; line-height: 1.6; }
         .form-group input:focus,
-        .form-group textarea:focus {
-            outline: none;
-            border-color: #3730A3;
-        }
+        .form-group textarea:focus { outline: none; border-color: #D97706; }
 
-        .modal-actions {
-            display: flex;
-            gap: 10px;
-            justify-content: flex-end;
-            margin-top: 20px;
-        }
+        .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
         .btn-save    { background: #3730A3; color: #FFF3D0; }
-        .btn-rewrite { background: #D97706; color: #E6EDF3; }
-        .btn-cancel  { background: #30363D; color: #E6EDF3; }
+        .btn-rewrite { background: #D97706; color: #1E1B4B; }
+        .btn-cancel  { background: #21262D; color: #E6EDF3; }
 
-        .char-count { font-size: 11px; color: #8B949E; margin-top: 4px; text-align: right; }
+        .char-count    { font-size: 11px; color: #8B949E; margin-top: 4px; text-align: right; }
         .feedback-hint { font-size: 12px; color: #8B949E; margin-top: 4px; line-height: 1.5; }
 
         @media (max-width: 640px) {
@@ -411,11 +356,11 @@ HTML = """
     </div>
 
     <div class="tabs">
-        <a href="/?filter=pending"       class="tab {{ 'active' if filter == 'pending'       else '' }}">Pending ({{ counts.pending }})</a>
-        <a href="/?filter=approved"      class="tab {{ 'active' if filter == 'approved'      else '' }}">Approved ({{ counts.approved }})</a>
-        <a href="/?filter=published"     class="tab {{ 'active' if filter == 'published'     else '' }}">Published ({{ counts.published }})</a>
-        <a href="/?filter=regenerating"  class="tab {{ 'active' if filter == 'regenerating'  else '' }}">Regenerating</a>
-        <a href="/?filter=all"           class="tab {{ 'active' if filter == 'all'           else '' }}">All</a>
+        <a href="/?filter=pending"      class="tab {{ 'active' if filter == 'pending'      else '' }}">Pending ({{ counts.pending }})</a>
+        <a href="/?filter=approved"     class="tab {{ 'active' if filter == 'approved'     else '' }}">Approved ({{ counts.approved }})</a>
+        <a href="/?filter=published"    class="tab {{ 'active' if filter == 'published'    else '' }}">Published ({{ counts.published }})</a>
+        <a href="/?filter=regenerating" class="tab {{ 'active' if filter == 'regenerating' else '' }}">Regenerating</a>
+        <a href="/?filter=all"          class="tab {{ 'active' if filter == 'all'          else '' }}">All</a>
     </div>
 
     <div class="section-title">
@@ -527,7 +472,7 @@ HTML = """
 
                     {% if post.content_type == 'reel' and post.post.audio_suggestion %}
                     <div class="audio-suggestion">
-                        🎵 Suggested audio: <strong>{{ post.post.audio_suggestion }}</strong>
+                        🎵 Suggested audio: <strong style="color:#D97706">{{ post.post.audio_suggestion }}</strong>
                         — add in Instagram app after posting
                     </div>
                     {% endif %}
@@ -565,8 +510,8 @@ HTML = """
 <!-- Edit Modal -->
 <div class="modal-overlay" id="editModal">
     <div class="modal">
-        <h2 class="indigo">Edit post</h2>
-        <form method="POST" action="/edit" onsubmit="showSpinner('Saving and regenerating image...')">
+        <h2 class="gold">Edit post</h2>
+        <form method="POST" action="/edit" onsubmit="showSpinner('Saving...')">
             <input type="hidden" name="post_id" id="edit_post_id">
             <div class="form-group">
                 <label>Hook (max 90 chars)</label>
@@ -603,16 +548,17 @@ HTML = """
 <!-- Feedback Modal -->
 <div class="modal-overlay" id="feedbackModal">
     <div class="modal">
-        <h2 class="gold">Give feedback to Claude</h2>
-        <form method="POST" action="/feedback" onsubmit="showSpinner('Queuing regeneration — you will be notified by email when ready...')">
+        <h2 class="indigo">Give feedback to Claude</h2>
+        <form method="POST" action="/feedback"
+              onsubmit="showSpinner('Queuing regeneration — email when ready...')">
             <input type="hidden" name="post_id" id="feedback_post_id">
             <div class="form-group">
                 <label>Your feedback</label>
                 <textarea name="feedback" id="feedback_text" rows="6"
                     placeholder="e.g. Make it more beginner friendly. Add a code example. Shorten the caption."></textarea>
                 <div class="feedback-hint">
-                    Claude will rewrite the post and regenerate the image in the background.
-                    You will receive an email when the new version is ready to review.
+                    Claude will rewrite the post in the background.
+                    You will receive an email when ready to review.
                 </div>
             </div>
             <div class="modal-actions">
@@ -729,15 +675,29 @@ def load_posts(filter_status=None):
         try:
             with open(path, "r") as f:
                 post = json.load(f)
-            if post.get("imgbb_url"):
-                post["image_path"] = post["imgbb_url"]
+
+            # Image URL — prefer Cloudinary (works in emails + dashboard)
+            # Never serve raw ImgBB if we have Cloudinary
+            cloudinary_img = post.get("cloudinary_image_url")
+            imgbb          = post.get("imgbb_url", "")
+            imgbb_is_cloud = imgbb and "cloudinary" in imgbb
+
+            if cloudinary_img:
+                post["image_path"] = cloudinary_img
+            elif imgbb_is_cloud:
+                post["image_path"] = imgbb
+            elif imgbb:
+                post["image_path"] = imgbb   # fallback ImgBB for dashboard only
             else:
-                image_path = os.path.join(QUEUE_DIR, "images", f"{post['id']}.png")
-                post["image_path"] = image_path if os.path.exists(image_path) else None
+                local = os.path.join(QUEUE_DIR, "images", f"{post['id']}.png")
+                post["image_path"] = local if os.path.exists(local) else None
+
             post["cloudinary_video_url"]  = post.get("cloudinary_video_url")
             post["cloudinary_story_urls"] = post.get("cloudinary_story_urls", [])
             post["imgbb_slide_urls"]      = post.get("imgbb_slide_urls", [])
             post["manual_action"]         = post.get("manual_action", {})
+            post["story_type"]            = post.get("story_type", "")
+
             if filter_status and filter_status != "all":
                 if post.get("status") == filter_status:
                     posts.append(post)
