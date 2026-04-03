@@ -200,7 +200,7 @@ def render_poll(data):
     return img
 
 def render_quiz(data):
-    """Quiz story — question with 4 options, correct answer indicated."""
+    """Quiz story — question with 4 clean options, no answer revealed."""
     img, d, W, H = story_base()
     draw_logo(d, W//2, 100, size=110)
 
@@ -216,26 +216,19 @@ def render_quiz(data):
                            colours=[WHITE]*10, W=W)
     y += 50
 
-    # 4 answer options
-    options      = data.get("options", ["A", "B", "C", "D"])
-    correct_idx  = data.get("correct_index", 0)
-    f_opt        = get_font(44, True)
-    f_letter     = get_font(36, True)
+    # 4 answer options — all identical style, no correct answer shown
+    options  = data.get("options", ["A", "B", "C", "D"])
+    f_opt    = get_font(44, True)
+    f_letter = get_font(36, True)
+    letters  = ["A", "B", "C", "D"]
 
     for i, opt in enumerate(options[:4]):
-        is_correct = (i == correct_idx)
-        bg  = PURPLE if is_correct else BG2
-        fg  = WHITE
-        out = PURPLE if is_correct else GRAY
-
-        # Option pill
+        # All options same neutral style
         d.rounded_rectangle([80, y, W-80, y+96],
-                             radius=48, fill=bg, outline=out, width=3)
+                             radius=48, fill=BG2, outline=GRAY, width=2)
 
         # Letter badge
-        letters = ["A", "B", "C", "D"]
-        letter_bg = ORANGE if is_correct else GRID
-        d.ellipse([96, y+18, 96+60, y+78], fill=letter_bg)
+        d.ellipse([96, y+18, 156, y+78], fill=GRID)
         d.text((126, y+48), letters[i],
                font=f_letter, fill=WHITE, anchor="mm")
 
@@ -243,26 +236,17 @@ def render_quiz(data):
         f_t, t_lines = fit_text(opt, 42, 32, W-280, d)
         ty = y + 48 - int(f_t.size * len(t_lines) * 0.6)
         for tl in t_lines[:2]:
-            d.text((180, ty), tl, font=f_t, fill=fg)
+            d.text((180, ty), tl, font=f_t, fill=LIGHT)
             ty += int(f_t.size * 1.3)
-
-        # Correct indicator
-        if is_correct:
-            d.text((W-110, y+48), "✓",
-                   font=get_font(48, True), fill=GREEN, anchor="mm")
 
         y += 120
 
-    # Quiz sticker reminder
-    y += 10
-    d.rounded_rectangle([100, y, W-100, y+100],
-                         radius=16, fill=BG2, outline=PURPLE, width=3)
-    d.text((W//2, y+30), "👆 Add Quiz sticker in Instagram app",
-           font=get_font(30, True), fill=PURPLE2, anchor="mm")
-    d.text((W//2, y+70), "Settings → Stickers → Quiz",
-           font=get_font(26), fill=LIGHT, anchor="mm")
+    # Simple CTA at bottom
+    y += 20
+    d.text((W//2, y), "What's your answer? 👇",
+           font=get_font(38, True), fill=ORANGE, anchor="mm")
 
-    draw_handle(d, W, H-60)
+    draw_handle(d, W, H-96)
     return img
 
 def render_behind_scenes(data):
