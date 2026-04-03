@@ -10,21 +10,16 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-BG      = (255, 243, 208)
-BG2     = (255, 232, 150)
-GRID    = (210, 180,  80)
-ORANGE  = (217, 119,   6)
-ORANGE2 = (234, 179,   8)
+BG      = (255, 243, 208)   # #FFF3D0 cream
+BG2     = (255, 232, 150)   # #FFE896 deeper cream
+INDIGO  = (55,  48,  163)   # #3730A3 primary
+INDIGO2 = (79,  70,  229)   # #4F46E5 mid
+GOLD    = (217, 119,   6)   # #D97706 accent
+TEXT    = (30,  27,   75)   # #1E1B4B dark text
+MID     = (61,  56,  120)   # #3D3878 mid text
+GRID    = (210, 180,  80)   # grid lines
 WHITE   = (255, 255, 255)
-LIGHT   = (30,  27,  75)
-GRAY    = (61,  56,  120)
-MUTED   = (61,  56,  120)
-DARK1   = (30,  27,  75)
-GREEN   = (78,  201, 176)
-PURPLE  = (55,  48,  163)
-PURPLE2 = (79,  70,  229)
-TEXT    = (30,  27,  75)
-GOLD = (217, 119, 6)
+GREEN   = (78,  201, 176)   # terminal green
 
 def get_font(size, bold=False):
     for p in ["/System/Library/Fonts/Helvetica.ttc",
@@ -41,13 +36,14 @@ def get_mono(size):
     return ImageFont.load_default()
 
 def parse_claude_json(text):
+    if not text or not text.strip():
+        raise ValueError("Empty response from Claude")
     clean = text.strip()
-    if "```" in clean:
-        parts = clean.split("```")
-        clean = parts[1] if len(parts) > 1 else clean
-        if clean.startswith("json"): clean = clean[4:]
-    clean = clean.strip()
-    clean = re.sub(r'(?<=[\[,])\s*#(\w+)"', r' "#\1"', clean)
+    # Find JSON object in response
+    start = clean.find('{')
+    end   = clean.rfind('}')
+    if start != -1 and end != -1:
+        clean = clean[start:end+1]
     clean = re.sub(r',\s*([}\]])', r'\1', clean)
     return json.loads(clean)
 
@@ -60,32 +56,50 @@ def story_base():
     img = Image.new("RGB", (W, H), BG)
     d   = ImageDraw.Draw(img)
     draw_grid(d, W, H)
-    d.rectangle([0, 0,   W, 8],  fill=PURPLE)
-    d.rectangle([0, H-8, W, H],  fill=GOLD)
+    # Indigo top bar, gold bottom bar
+    d.rectangle([0, 0,   W, 10], fill=INDIGO)
+    d.rectangle([0, H-10, W, H], fill=GOLD)
     return img, d, W, H
 
-def draw_logo(d, cx, y, size=110):
-    bw = size; bh = int(size * 0.65)
+def draw_logo(d, cx, y, size=120):
+    """Uses exact same approach as working brand assets."""
+    bw     = size
+    bh     = int(size * 0.65)
+    radius = max(14, int(bw * 0.15))
+    stroke = max(4,  int(bw * 0.055))
+    pad    = int(bw * 0.13)
+
+    # Tail
+    t     = int(bw * 0.11)
+    tip_y = y + bh + int(bh * 0.30)
+    d.polygon([(cx-t, y+bh),(cx+t, y+bh),(cx, tip_y)], fill=INDIGO)
+
+    # Body fill
     bx = cx - bw//2
-    t_half = int(bw * 0.12)
-    t_tip  = y + bh + int(bh * 0.28)
-    d.polygon([(cx-t_half,y+bh),(cx+t_half,y+bh),(cx,t_tip)], fill=ORANGE)
-    d.rounded_rectangle([bx,y,bx+bw,y+bh], radius=int(bw*0.15), fill=BG2)
-    d.rounded_rectangle([bx,y,bx+bw,y+bh], radius=int(bw*0.15),
-                         outline=ORANGE, width=max(4, size//20))
-    pad = int(bw*0.14)
-    d.rounded_rectangle([bx+pad,y+pad,bx+bw-pad,y+pad+int(bh*0.22)],
-                         radius=int(bh*0.1), fill=ORANGE)
-    yb = y+pad+int(bh*0.22)+int(bh*0.1)
-    for op in [0.65, 0.48, 0.32]:
-        c = tuple(int(v*op) for v in ORANGE2)
-        d.rounded_rectangle([bx+pad,yb,bx+bw-pad-int(bw*0.18*op),yb+int(bh*0.14)],
-                             radius=int(bh*0.06), fill=c)
-        yb += int(bh*0.14)+int(bh*0.08)
+    d.rounded_rectangle([bx, y, bx+bw, y+bh], radius=radius, fill=BG2)
+
+    # Stroke
+    d.rounded_rectangle([bx, y, bx+bw, y+bh], radius=radius,
+                         outline=INDIGO, width=stroke)
+
+    # Top indigo bar
+    bar_h = int(bh * 0.18)
+    d.rounded_rectangle([bx+pad, y+pad, bx+bw-pad, y+pad+bar_h],
+                         radius=bar_h//2, fill=INDIGO)
+
+    # Three gold content bars
+    yb = y + pad + bar_h + int(bh * 0.08)
+    for op, w_ratio in [(1.0, 0.9), (0.65, 0.7), (0.40, 0.5)]:
+        bh2  = int(bh * 0.10)
+        bw2  = int((bw - pad*2) * w_ratio)
+        c    = tuple(int(GOLD[i]*op + BG2[i]*(1-op)) for i in range(3))
+        d.rounded_rectangle([bx+pad, yb, bx+pad+bw2, yb+bh2],
+                             radius=bh2//2, fill=c)
+        yb += bh2 + int(bh * 0.07)
 
 def draw_handle(d, W, y):
     d.text((W//2, y), "@ask.claudeai",
-           font=get_mono(28), fill=MUTED, anchor="mm")
+           font=get_mono(28), fill=MID, anchor="mm")
 
 def fit_text(text, max_size, min_size, max_width, d, bold=False):
     size = max_size
@@ -113,12 +127,12 @@ def draw_centred_lines(d, lines, font, start_y, line_h,
     for i, line in enumerate(lines):
         bbox = d.textbbox((0,0), line, font=font)
         tw   = bbox[2]-bbox[0]
-        col  = colours[i] if colours and i < len(colours) else WHITE
+        col  = colours[i] if colours and i < len(colours) else TEXT
         d.text(((W-tw)//2, y), line, font=font, fill=col)
         y += line_h
     return y
 
-def pill(d, cx, y, text, font, bg=ORANGE, fg=BG, pad_x=60, h=54):
+def pill(d, cx, y, text, font, bg=INDIGO, fg=BG, pad_x=60, h=54):
     bbox = d.textbbox((0,0), text, font=font)
     tw   = bbox[2]-bbox[0]
     w    = tw + pad_x
@@ -126,12 +140,12 @@ def pill(d, cx, y, text, font, bg=ORANGE, fg=BG, pad_x=60, h=54):
     d.text((cx, y+h//2), text, font=font, fill=fg, anchor="mm")
     return y + h
 
-def outline_pill(d, cx, y, text, font, col=ORANGE, pad_x=60, h=54):
+def outline_pill(d, cx, y, text, font, col=INDIGO, pad_x=60, h=54):
     bbox = d.textbbox((0,0), text, font=font)
     tw   = bbox[2]-bbox[0]
     w    = tw + pad_x
     d.rounded_rectangle([cx-w//2, y, cx+w//2, y+h],
-                         radius=h//2, fill=BG2, outline=col, width=3)
+                         radius=h//2, fill=BG, outline=col, width=3)
     d.text((cx, y+h//2), text, font=font, fill=col, anchor="mm")
     return y + h
 
@@ -141,129 +155,146 @@ def outline_pill(d, cx, y, text, font, col=ORANGE, pad_x=60, h=54):
 
 def render_tip_repurpose(data):
     img, d, W, H = story_base()
-    draw_logo(d, W//2, 148, size=130)
-    pill(d, W//2, 390, "ASK CLAUDE TIP",
-         get_font(26, True), pad_x=80, h=52)
-    tip  = data.get("tip_text", "")
-    f_tip, tip_lines = fit_text(tip, 72, 48, W-140, d, bold=True)
-    line_h = int(f_tip.size * 1.35)
-    colours = [WHITE if i < len(tip_lines)//2 else ORANGE
+
+    # ── Logo — large, centred at top third ───────────────────────────
+    draw_logo(d, W//2, 160, size=200)
+
+    # ── Label pill ───────────────────────────────────────────────────
+    pill(d, W//2, 470, "ASK CLAUDE TIP",
+         get_font(36, True), bg=INDIGO, fg=BG, pad_x=80, h=72)
+
+    # ── Main tip text — large, fills middle ──────────────────────────
+    tip = data.get("tip_text", "")
+    f_tip, tip_lines = fit_text(tip, 108, 72, W-140, d, bold=True)
+    line_h  = int(f_tip.size * 1.4)
+    total_h = len(tip_lines) * line_h
+    y_start = 620
+    colours = [TEXT if i < (len(tip_lines)+1)//2 else INDIGO
                for i in range(len(tip_lines))]
-    y = draw_centred_lines(d, tip_lines, f_tip, 478, line_h,
+    y = draw_centred_lines(d, tip_lines, f_tip, y_start, line_h,
                            colours=colours, W=W)
-    y += 24
-    d.rectangle([W//2-80, y, W//2+80, y+3], fill=GRID)
-    d.rectangle([W//2-80, y, W//2,    y+3], fill=ORANGE)
+
+    # ── Divider ───────────────────────────────────────────────────────
+    y += 40
+    d.rectangle([W//2-100, y, W//2+100, y+4], fill=GRID)
+    d.rectangle([W//2-100, y, W//2,     y+4], fill=INDIGO)
+
+    # ── Subtext ───────────────────────────────────────────────────────
     y += 28
     sub = data.get("subtext", "")
-    f_sub, sub_lines = fit_text(sub, 46, 36, W-160, d, bold=False)
+    f_sub, sub_lines = fit_text(sub, 52, 40, W-160, d, bold=False)
     sub_h = int(f_sub.size * 1.5)
     y = draw_centred_lines(d, sub_lines, f_sub, y, sub_h,
-                           colours=[LIGHT]*10, W=W)
-    y += 40
+                           colours=[MID]*10, W=W)
+
+    # ── Save button ───────────────────────────────────────────────────
+    y += 60
     pill(d, W//2, y, "Save this tip",
-         get_font(40, True), pad_x=100, h=84)
-    d.text((W//2, H-148), "New post  Mon · Wed · Thu",
-           font=get_mono(28), fill=MUTED, anchor="mm")
+         get_font(48, True), bg=GOLD, fg=TEXT, pad_x=120, h=108)
+
+    # ── Bottom branding ───────────────────────────────────────────────
+    d.text((W//2, H-156), "New post  Mon · Wed · Thu",
+           font=get_mono(32), fill=MID, anchor="mm")
     draw_handle(d, W, H-96)
     return img
 
 def render_poll(data):
     img, d, W, H = story_base()
-    draw_logo(d, W//2, 148, size=120)
-    outline_pill(d, W//2, 370, "QUICK QUESTION",
-                 get_font(28, True), pad_x=80, h=52)
-    q = data.get("question", "")
-    f_q, q_lines = fit_text(q, 76, 52, W-140, d, bold=True)
-    q_h = int(f_q.size * 1.4)
-    y = draw_centred_lines(d, q_lines, f_q, 460, q_h,
-                           colours=[WHITE]*10, W=W)
-    y += 60
-    options = data.get("options", ["Option A", "Option B"])
-    f_opt = get_font(52, True)
-    for i, opt in enumerate(options[:2]):
-        if i == 1:
-            outline_pill(d, W//2, y, opt, f_opt, pad_x=120, h=110)
-        else:
-            pill(d, W//2, y, opt, f_opt, bg=ORANGE, fg=BG, pad_x=120, h=110)
-        y += 130
-    y += 20
-    # Poll sticker reminder box
-    d.rounded_rectangle([100, y, W-100, y+100],
-                         radius=16, fill=BG2, outline=ORANGE, width=3)
-    d.text((W//2, y+30), "👆 Add Poll sticker in Instagram app",
-           font=get_font(30, True), fill=ORANGE, anchor="mm")
-    d.text((W//2, y+70), "Settings → Stickers → Poll",
-           font=get_font(26), fill=LIGHT, anchor="mm")
-    y += 120
-    d.text((W//2, y+20), "Comment your answer below 👇",
-           font=get_font(36), fill=LIGHT, anchor="mm")
-    draw_handle(d, W, H-60)
-    return img
 
-def render_quiz(data):
-    """Quiz story — question with 4 clean options, no answer revealed."""
-    img, d, W, H = story_base()
-    draw_logo(d, W//2, 100, size=110)
+    draw_logo(d, W//2, 140, size=180)
 
-    # Header
-    pill(d, W//2, 310, "DEV QUIZ",
-         get_font(30, True), bg=PURPLE, fg=WHITE, pad_x=80, h=60)
+    outline_pill(d, W//2, 420, "QUICK QUESTION",
+                 get_font(36, True), col=INDIGO, pad_x=80, h=68)
 
     # Question
     q = data.get("question", "")
-    f_q, q_lines = fit_text(q, 70, 50, W-140, d, bold=True)
-    q_h = int(f_q.size * 1.4)
-    y = draw_centred_lines(d, q_lines, f_q, 420, q_h,
-                           colours=[WHITE]*10, W=W)
-    y += 50
+    f_q, q_lines = fit_text(q, 100, 68, W-140, d, bold=True)
+    q_h = int(f_q.size * 1.45)
+    y = draw_centred_lines(d, q_lines, f_q, 560, q_h,
+                           colours=[TEXT]*10, W=W)
 
-    # 4 answer options — all identical style, no correct answer shown
-    options  = data.get("options", ["A", "B", "C", "D"])
-    f_opt    = get_font(44, True)
-    f_letter = get_font(36, True)
-    letters  = ["A", "B", "C", "D"]
+    y += 72
+    options = data.get("options", ["Option A", "Option B"])
+    f_opt = get_font(60, True)
+    for i, opt in enumerate(options[:2]):
+        if i == 0:
+            pill(d, W//2, y, opt, f_opt,
+                 bg=INDIGO, fg=BG, pad_x=120, h=128)
+        else:
+            outline_pill(d, W//2, y, opt, f_opt,
+                         col=INDIGO, pad_x=120, h=128)
+        y += 152
+
+    y += 24
+    d.rounded_rectangle([120, y, W-120, y+112],
+                         radius=20, fill=BG2, outline=INDIGO, width=3)
+    d.text((W//2, y+36), "👆 Add Poll sticker in Instagram app",
+           font=get_font(32, True), fill=INDIGO, anchor="mm")
+    d.text((W//2, y+82), "Stickers → Poll",
+           font=get_font(28), fill=MID, anchor="mm")
+
+    draw_handle(d, W, H-72)
+    return img
+
+def render_quiz(data):
+    img, d, W, H = story_base()
+
+    draw_logo(d, W//2, 100, size=160)
+
+    pill(d, W//2, 352, "DEV QUIZ",
+         get_font(38, True), bg=INDIGO, fg=BG, pad_x=80, h=72)
+
+    q = data.get("question", "")
+    f_q, q_lines = fit_text(q, 92, 64, W-140, d, bold=True)
+    q_h = int(f_q.size * 1.45)
+    y = draw_centred_lines(d, q_lines, f_q, 490, q_h,
+                           colours=[TEXT]*10, W=W)
+
+    y += 56
+    options  = data.get("options", ["A","B","C","D"])
+    f_opt    = get_font(50, True)
+    f_letter = get_font(44, True)
+    letters  = ["A","B","C","D"]
 
     for i, opt in enumerate(options[:4]):
-        # All options same neutral style
-        d.rounded_rectangle([80, y, W-80, y+96],
-                             radius=48, fill=BG2, outline=GRAY, width=2)
-
+        d.rounded_rectangle([80, y, W-80, y+112],
+                             radius=56, fill=BG2, outline=INDIGO, width=3)
         # Letter badge
-        d.ellipse([96, y+18, 156, y+78], fill=GRID)
-        d.text((126, y+48), letters[i],
-               font=f_letter, fill=WHITE, anchor="mm")
-
+        d.ellipse([96, y+20, 176, y+92], fill=INDIGO)
+        d.text((136, y+56), letters[i],
+               font=f_letter, fill=BG, anchor="mm")
         # Option text
-        f_t, t_lines = fit_text(opt, 42, 32, W-280, d)
-        ty = y + 48 - int(f_t.size * len(t_lines) * 0.6)
+        f_t, t_lines = fit_text(opt, 48, 36, W-300, d)
+        ty = y + 56 - int(f_t.size * len(t_lines) * 0.6)
         for tl in t_lines[:2]:
-            d.text((180, ty), tl, font=f_t, fill=LIGHT)
+            d.text((196, ty), tl, font=f_t, fill=TEXT)
             ty += int(f_t.size * 1.3)
+        y += 136
 
-        y += 120
-
-    # Simple CTA at bottom
     y += 20
     d.text((W//2, y), "What's your answer? 👇",
-           font=get_font(38, True), fill=ORANGE, anchor="mm")
+           font=get_font(44, True), fill=GOLD, anchor="mm")
 
-    draw_handle(d, W, H-96)
+    draw_handle(d, W, H-72)
     return img
 
 def render_behind_scenes(data):
     img, d, W, H = story_base()
-    d.rounded_rectangle([60, 80, W-60, 164],
-                         radius=20, fill=BG2, outline=ORANGE, width=3)
-    d.text((W//2, 122), "Behind the scenes",
-           font=get_font(40, True), fill=ORANGE, anchor="mm")
-    d.text((W//2, 210), "How this post was generated",
-           font=get_font(36), fill=LIGHT, anchor="mm")
-    term_y = 270; term_h = 860
+
+    # Header on cream
+    d.rounded_rectangle([60, 80, W-60, 168],
+                         radius=20, fill=BG2, outline=INDIGO, width=3)
+    d.text((W//2, 124), "Behind the scenes",
+           font=get_font(40, True), fill=INDIGO, anchor="mm")
+    d.text((W//2, 216), "How this post was generated",
+           font=get_font(36), fill=MID, anchor="mm")
+
+    # Terminal — stays dark, it's a terminal
+    term_y = 280; term_h = 860
     d.rounded_rectangle([40, term_y, W-40, term_y+term_h],
                          radius=18, fill=(17,17,17))
     d.rounded_rectangle([40, term_y, W-40, term_y+term_h],
-                         radius=18, outline=GRID, width=2)
+                         radius=18, outline=(55,55,55), width=2)
     d.rounded_rectangle([40, term_y, W-40, term_y+52],
                          radius=18, fill=(45,45,45))
     d.rectangle([40, term_y+26, W-40, term_y+52], fill=(45,45,45))
@@ -271,7 +302,8 @@ def render_behind_scenes(data):
         cx = 80 + i*32
         d.ellipse([cx-11, term_y+16, cx+11, term_y+38], fill=col)
     d.text((W//2, term_y+26), "claude_bot.py",
-           font=get_mono(24), fill=GRAY, anchor="mm")
+           font=get_mono(24), fill=(128,128,128), anchor="mm")
+
     prompt_lines = data.get("prompt_preview", [
         "# Prompt sent to Claude:",
         "",
@@ -294,92 +326,113 @@ def render_behind_scenes(data):
             continue
         if line.startswith("#"):   col = (106,153,85)
         elif "✓" in line:          col = GREEN
-        elif line.startswith("→"): col = ORANGE
+        elif line.startswith("→"): col = GOLD
         else:                       col = (204,204,204)
         d.text((64, y_term), line, font=f_term, fill=col)
         y_term += 42
+
+    # Disclosure card — cream background
     disc_y = term_y + term_h + 30
-    d.rounded_rectangle([60, disc_y, W-60, disc_y+110],
+    d.rounded_rectangle([60, disc_y, W-60, disc_y+114],
                          radius=14, fill=BG2)
-    d.rectangle([60, disc_y, 68, disc_y+110], fill=ORANGE)
-    d.rounded_rectangle([60, disc_y, 68, disc_y+110], radius=4, fill=ORANGE)
-    d.text((88, disc_y+22), "✦  AI-generated content",
-           font=get_font(28), fill=GRAY)
-    d.text((88, disc_y+62), "✓  Reviewed & approved by a human",
-           font=get_font(28), fill=LIGHT)
+    d.rectangle([60, disc_y, 70, disc_y+114], fill=INDIGO)
+    d.rounded_rectangle([60, disc_y, 70, disc_y+114], radius=6, fill=INDIGO)
+    d.text((90, disc_y+24), "✦  AI-generated content",
+           font=get_font(28), fill=MID)
+    d.text((90, disc_y+66), "✓  Reviewed & approved by a human",
+           font=get_font(28), fill=TEXT)
+
     draw_handle(d, W, H-60)
     return img
 
 def render_reel_teaser(data):
     img, d, W, H = story_base()
-    outline_pill(d, W//2, 100, "NEW REEL OUT NOW",
-                 get_font(28, True), pad_x=80, h=56)
+
+    outline_pill(d, W//2, 120, "NEW REEL OUT NOW",
+                 get_font(36, True), col=INDIGO, pad_x=80, h=72)
+
+    # Topic text — large, fills upper half
     topic = data.get("topic", "")
-    f_t, t_lines = fit_text(topic, 72, 52, W-140, d, bold=True)
-    t_h = int(f_t.size * 1.4)
-    y = draw_centred_lines(d, t_lines, f_t, 210, t_h,
-                           colours=[WHITE]*10, W=W)
-    y = max(y + 60, 580)
-    cx, cy, r = W//2, y+200, 190
+    f_t, t_lines = fit_text(topic, 104, 72, W-140, d, bold=True)
+    t_h = int(f_t.size * 1.45)
+    y = draw_centred_lines(d, t_lines, f_t, 280, t_h,
+                           colours=[TEXT]*10, W=W)
+
+    # Play button — centred
+    y = max(y + 80, 820)
+    cx, cy, r = W//2, y + 220, 210
     d.ellipse([cx-r, cy-r, cx+r, cy+r], fill=BG2)
-    d.ellipse([cx-r, cy-r, cx+r, cy+r], outline=ORANGE, width=10)
-    offset = 18
+    d.ellipse([cx-r, cy-r, cx+r, cy+r], outline=INDIGO, width=12)
+    offset = 22
     d.polygon([
-        (cx - 70 + offset, cy - 100),
-        (cx - 70 + offset, cy + 100),
-        (cx + 110 + offset, cy),
-    ], fill=ORANGE)
-    y = cy + r + 50
+        (cx - 80 + offset, cy - 112),
+        (cx - 80 + offset, cy + 112),
+        (cx + 120 + offset, cy),
+    ], fill=GOLD)
+
+    y = cy + r + 64
     pill(d, W//2, y, "Watch the Reel →",
-         get_font(40, True), pad_x=100, h=88)
-    y += 88 + 36
+         get_font(48, True), bg=INDIGO, fg=BG, pad_x=120, h=108)
+    y += 108 + 48
     d.text((W//2, y), "Tap the link in bio",
-           font=get_font(36), fill=LIGHT, anchor="mm")
-    draw_logo(d, W//2, H-280, size=110)
-    draw_handle(d, W, H-96)
+           font=get_font(44), fill=MID, anchor="mm")
+
+    draw_logo(d, W//2, H-320, size=130)
+    draw_handle(d, W, H-120)
     return img
 
 def render_weekly_roundup(data, slide_num=1, total_slides=2):
     img, d, W, H = story_base()
-    pill(d, W//2, 80, f"Week in review  ·  {slide_num} / {total_slides}",
-         get_font(30, True), pad_x=80, h=60)
+
+    pill(d, W//2, 100, f"Week in review  ·  {slide_num} / {total_slides}",
+         get_font(36, True), bg=INDIGO, fg=BG, pad_x=80, h=72)
+
     if slide_num == 1:
-        d.text((W//2, 210), "This week on Ask Claude",
-               font=get_font(54, True), fill=WHITE, anchor="mm")
+        d.text((W//2, 260), "This week on Ask Claude",
+               font=get_font(64, True), fill=TEXT, anchor="mm")
+
         posts  = data.get("posts_summary", [])
-        f_day  = get_font(32, True)
-        f_post = get_font(40)
-        y_pos  = 320
-        for post in posts[:4]:
+        f_day  = get_font(40, True)
+        f_post = get_font(48)
+        y_pos  = 380
+        for post in posts[:3]:
             day   = post.get("day", "")
             title = post.get("title", "")
-            d.rounded_rectangle([80, y_pos, 220, y_pos+58],
-                                 radius=29, fill=BG2, outline=ORANGE, width=3)
-            d.text((150, y_pos+29), day, font=f_day, fill=ORANGE, anchor="mm")
-            f_t, t_lines = fit_text(title, 40, 32, W-300, d)
-            ty = y_pos + 8
+            d.rounded_rectangle([80, y_pos, 240, y_pos+80],
+                                 radius=40, fill=INDIGO)
+            d.text((160, y_pos+40), day, font=f_day, fill=BG, anchor="mm")
+            f_t, t_lines = fit_text(title, 48, 36, W-340, d)
+            ty = y_pos + 16
             for tl in t_lines[:2]:
-                d.text((250, ty), tl, font=f_t, fill=WHITE)
+                d.text((268, ty), tl, font=f_t, fill=TEXT)
                 ty += int(f_t.size * 1.3)
-            y_pos = max(y_pos + 100, ty + 20)
-        d.rectangle([80, y_pos+20, W-80, y_pos+23], fill=GRID)
-        d.text((W//2, y_pos+60), "Swipe for next week's teaser →",
-               font=get_font(34), fill=LIGHT, anchor="mm")
+            y_pos = max(y_pos + 140, ty + 24)
+
+        d.rectangle([80, y_pos+28, W-80, y_pos+32], fill=GRID)
+        d.text((W//2, y_pos+80), "Swipe for next week's teaser →",
+               font=get_font(40), fill=MID, anchor="mm")
+
+        draw_logo(d, W//2, H-320, size=140)
+        draw_handle(d, W, H-120)
+
     elif slide_num == 2:
-        d.text((W//2, 210), "Coming next week",
-               font=get_font(54, True), fill=WHITE, anchor="mm")
+        d.text((W//2, 260), "Coming next week",
+               font=get_font(64, True), fill=TEXT, anchor="mm")
+
         teaser = data.get("teaser", "")
-        f_t, t_lines = fit_text(teaser, 76, 52, W-160, d, bold=True)
-        t_h = int(f_t.size * 1.4)
-        colours = [WHITE if i < len(t_lines)//2 else ORANGE
+        f_t, t_lines = fit_text(teaser, 108, 72, W-160, d, bold=True)
+        t_h = int(f_t.size * 1.45)
+        colours = [TEXT if i < (len(t_lines)+1)//2 else INDIGO
                    for i in range(len(t_lines))]
-        y = draw_centred_lines(d, t_lines, f_t, 380, t_h,
+        y = draw_centred_lines(d, t_lines, f_t, 450, t_h,
                                colours=colours, W=W)
-        y += 80
+        y += 100
         pill(d, W//2, y, "Follow for daily tips",
-             get_font(40, True), pad_x=100, h=88)
-    draw_logo(d, W//2, H-280, size=110)
-    draw_handle(d, W, H-96)
+             get_font(48, True), bg=INDIGO, fg=BG, pad_x=120, h=108)
+
+        draw_logo(d, W//2, H-320, size=140)
+        draw_handle(d, W, H-120)
+
     return img
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -418,8 +471,7 @@ Return ONLY valid JSON:
 
         "quiz": f"""You are creating a developer quiz Instagram Story for @ask.claudeai.
 {parent_ctx}
-Create a genuinely educational Claude API quiz question with 4 options. One correct answer.
-The question should teach something useful even if the viewer gets it wrong.
+Create a genuinely educational Claude API quiz with 4 options. One correct answer.
 Return ONLY valid JSON:
 {{
   "question": "quiz question (max 12 words, specific to Claude API)",
@@ -430,7 +482,7 @@ Return ONLY valid JSON:
     "fourth option (max 6 words)"
   ],
   "correct_index": 0,
-  "explanation": "one sentence explaining why the answer is correct (max 20 words)",
+  "explanation": "one sentence why the answer is correct (max 20 words)",
   "caption": "caption teasing the quiz (1-2 lines + hashtags)"
 }}""",
 
@@ -484,13 +536,19 @@ Return ONLY valid JSON:
 }}"""
     }
 
-    message = client.messages.create(
-        model="claude-sonnet-4-20250514",
-        max_tokens=1500,
-        messages=[{"role": "user",
-                   "content": prompts.get(story_type, prompts["tip_repurpose"])}]
-    )
-    return parse_claude_json(message.content[0].text)
+    for attempt in range(3):
+        try:
+            message = client.messages.create(
+                model="claude-sonnet-4-20250514",
+                max_tokens=1500,
+                messages=[{"role": "user",
+                           "content": prompts.get(story_type, prompts["tip_repurpose"])}]
+            )
+            return parse_claude_json(message.content[0].text)
+        except Exception as e:
+            print(f"Attempt {attempt+1} failed: {e}")
+            if attempt == 2:
+                raise
 
 def get_story_type_for_today(strategy):
     day = datetime.now().strftime("%A").lower()
@@ -523,47 +581,37 @@ def find_latest_published_post():
     candidates.sort(key=lambda x: x[0], reverse=True)
     return candidates[0][2]
 
-# Manual action instructions per story type
 MANUAL_ACTIONS = {
     "poll": {
         "required": True,
         "action":   "Add Poll sticker",
         "steps": [
-            "Open Instagram Stories",
-            "Tap the Sticker icon (smiley face)",
-            "Select 'Poll'",
-            f"Set the two options to match your post",
-            "Position the sticker on the image"
+            "Open the story in Instagram after posting",
+            "Tap the Sticker icon",
+            "Select Poll",
+            "Set the two options to match your post",
+            "Position and post"
         ]
     },
     "quiz": {
         "required": True,
         "action":   "Add Quiz sticker",
         "steps": [
-            "Open Instagram Stories",
-            "Tap the Sticker icon (smiley face)",
-            "Select 'Quiz'",
+            "Open the story in Instagram after posting",
+            "Tap the Sticker icon",
+            "Select Quiz",
             "Enter the question and 4 answers",
             "Mark the correct answer",
-            "Position the sticker on the image"
+            "Position and post"
         ]
     },
     "reel_teaser": {
         "required": False,
         "action":   "Add Link sticker (optional)",
         "steps": [
-            "Open the Story after posting",
-            "Tap 'Add Link' sticker",
-            "Paste your Reel URL",
-            "Position above the 'Watch the Reel' button"
-        ]
-    },
-    "behind_scenes": {
-        "required": False,
-        "action":   "Add Link sticker to parent post (optional)",
-        "steps": [
-            "Copy the parent feed post URL",
-            "Add a Link sticker pointing to it"
+            "Copy your Reel URL",
+            "Add a Link sticker pointing to it",
+            "Position above the Watch the Reel button"
         ]
     }
 }
@@ -635,7 +683,6 @@ def generate_story(story_type=None):
 
     print(f"Rendered {len(image_paths)} image(s)")
 
-    # Get manual action instructions for this story type
     manual_action = MANUAL_ACTIONS.get(story_type, {
         "required": False, "action": None, "steps": []
     })
@@ -671,7 +718,7 @@ def generate_story(story_type=None):
         }
     }
 
-    # Upload story images to Cloudinary
+    # Upload to Cloudinary
     if image_paths:
         try:
             sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -680,11 +727,11 @@ def generate_story(story_type=None):
             story_urls = upload_all_story_images(image_paths)
             queue_entry["cloudinary_story_urls"] = story_urls
             queue_entry["imgbb_url"] = story_urls[0] if story_urls else None
-            print(f"Uploaded {len([u for u in story_urls if u])} story images")
+            print(f"Uploaded {len([u for u in story_urls if u])} images")
         except Exception as e:
             print(f"Story upload skipped: {e}")
 
-    # Send email notification
+    # Email notification
     try:
         from notify import notify_post_ready
         notify_post_ready(queue_entry)
@@ -696,10 +743,9 @@ def generate_story(story_type=None):
 
     print(f"\nStory saved: {filename}")
     if manual_action.get("required"):
-        print(f"⚠️  Manual action required after posting: {manual_action['action']}")
+        print(f"⚠️  Manual action required: {manual_action['action']}")
     return filename, queue_entry
 
 if __name__ == "__main__":
-    import sys
     story_type = sys.argv[1] if len(sys.argv) > 1 else None
     generate_story(story_type)
