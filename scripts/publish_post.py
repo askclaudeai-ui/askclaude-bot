@@ -130,23 +130,71 @@ def publish_post(dry_run=False):
         print("\n--- DRY RUN --- Nothing posted to Instagram.")
         return True
 
-    # Get image URL
-    image_url  = get_image_url(post, post_id, path)
-    image_path = f"queue/images/{post_id}.png"
-
-    if not image_url:
-        print("No image URL available — cannot publish.")
-        return False
-
     try:
         late_key        = os.getenv("LATE_API_KEY")
         late_account_id = os.getenv("LATE_ACCOUNT_ID")
-
         if not late_key or not late_account_id:
             raise Exception("LATE_API_KEY or LATE_ACCOUNT_ID not set")
 
-        print(f"Publishing via Late API...")
-        print(f"Image URL: {image_url}")
+        # ── Build media items based on content type ───────────────────
+        media_items = []
+
+        if content_type == "static":
+            image_url = get_image_url(post, post_id, path)
+            if not image_url:
+                raise Exception("No image URL available for static post")
+            media_items = [{"type": "image", "url": image_url}]
+
+        elif content_type == "carousel":
+            # Use Cloudinary slide URLs if available, fall back to ImgBB
+            slide_urls = post.get("imgbb_slide_urls", [])
+            cloudinary_slides = [u for u in slide_urls if u and "cloudinary" in u]
+            slides = cloudinary_slides if cloudinary_slides else [u for u in slide_urls if u]
+            if not slides:
+                raise Exception("No slide URLs found for carousel post")
+            media_items = [{"type": "image", "url": url} for url in slides[:10]]
+            print(f"Carousel: {len(media_items)} slides")
+
+        elif content_type == "reel":
+            video_url = post.get("cloudinary_video_url")
+            if not video_url:
+                raise Exception("No Cloudinary video URL found for reel")
+            media_items = [{"type": "video", "url": video_url}]
+            print(f"Reel video: {video_url}")
+
+        elif content_type == "story":
+            story_urls = post.get("cloudinary_story_urls", [])
+            if not story_urls:
+                raise Exception("No Cloudinary story URLs found")
+            # Stories: publish first slide (Late API handles one story at a time)
+            media_items = [{"type": "image", "url": story_urls[0]}]
+            print(f"Story: {story_urls[0]}")
+
+        else:
+            raise Exception(f"Unsupported content type: {content_type}")
+
+        # ── Publish via Late API ──────────────────────────────────────
+        print(f"Publishing via Late API ({content_type})...")
+
+        payload = {
+            "platforms": [{
+                "platform":  "instagram",
+                "accountId": late_account_id
+            }],
+            "content":    full_caption,
+            "mediaItems": media_items,
+            "publishNow": True
+        }
+
+        # Set content type hints for Late API
+        if content_type == "reel":
+            payload["platforms"][0]["platformSpecificData"] = {
+                "contentType": "reel"
+            }
+        elif content_type == "story":
+            payload["platforms"][0]["platformSpecificData"] = {
+                "contentType": "story"
+            }
 
         r = requests.post(
             "https://getlate.dev/api/v1/posts",
@@ -154,15 +202,7 @@ def publish_post(dry_run=False):
                 "Authorization": f"Bearer {late_key}",
                 "Content-Type":  "application/json"
             },
-            json={
-                "platforms": [{
-                    "platform":  "instagram",
-                    "accountId": late_account_id
-                }],
-                "content":    full_caption,
-                "mediaItems": [{"type": "image", "url": image_url}],
-                "publishNow": True
-            }
+            json=payload
         )
         result   = r.json()
         post_obj = result.get("post", {})
@@ -176,7 +216,6 @@ def publish_post(dry_run=False):
             print(f"Post ID: {media_id}")
             return True
         elif r.status_code == 207:
-            # 207 means created but publishing pending — treat as success
             if media_id:
                 update_queue_file(path, post, media_id)
                 print(f"\nPost scheduled — Late API will publish shortly.")
@@ -187,7 +226,8 @@ def publish_post(dry_run=False):
 
     except Exception as e:
         print(f"\nPublish failed: {e}")
-        img_path = image_path if os.path.exists(image_path) else None
+        image_path = f"queue/images/{post_id}.png"
+        img_path   = image_path if os.path.exists(image_path) else None
         notify_manual_publish(path, post, img_path, full_caption)
         return False
 
