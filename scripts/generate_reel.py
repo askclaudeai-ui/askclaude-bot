@@ -417,6 +417,9 @@ def assemble_reel(frame_paths, segment_durations, combined_audio_path, output_pa
 
         video      = concatenate_videoclips(clips, method="compose")
         audio_clip = AudioFileClip(combined_audio_path)
+        # Trim trailing noise — cut last 0.3 seconds
+        if audio_clip.duration > 0.5:
+            audio_clip = audio_clip.subclip(0, audio_clip.duration - 0.3)
         video      = video.set_audio(audio_clip)
 
         os.makedirs(os.path.dirname(output_path), exist_ok=True)

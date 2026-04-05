@@ -668,16 +668,29 @@ def load_posts(filter_status=None):
     posts = []
     if not os.path.exists(QUEUE_DIR):
         return posts
-    for fname in sorted(os.listdir(QUEUE_DIR), reverse=True):
-        if not fname.endswith(".json"):
-            continue
-        path = os.path.join(QUEUE_DIR, fname)
+
+    # Collect all queue files — feed posts and stories
+    all_files = []
+    for fname in os.listdir(QUEUE_DIR):
+        if fname.endswith(".json"):
+            all_files.append(os.path.join(QUEUE_DIR, fname))
+    # Also scan queue/stories/
+    stories_dir = os.path.join(QUEUE_DIR, "stories")
+    if os.path.exists(stories_dir):
+        for fname in os.listdir(stories_dir):
+            if fname.endswith(".json"):
+                all_files.append(os.path.join(stories_dir, fname))
+
+    for path in sorted(all_files, reverse=True):
         try:
             with open(path, "r") as f:
                 post = json.load(f)
 
-            # Image URL — prefer Cloudinary (works in emails + dashboard)
-            # Never serve raw ImgBB if we have Cloudinary
+            # Skip ready_to_post — treat as pending for display
+            if post.get("status") == "ready_to_post":
+                post["status"] = "pending"
+
+            # Image URL — prefer Cloudinary
             cloudinary_img = post.get("cloudinary_image_url")
             imgbb          = post.get("imgbb_url", "")
             imgbb_is_cloud = imgbb and "cloudinary" in imgbb
@@ -687,7 +700,7 @@ def load_posts(filter_status=None):
             elif imgbb_is_cloud:
                 post["image_path"] = imgbb
             elif imgbb:
-                post["image_path"] = imgbb   # fallback ImgBB for dashboard only
+                post["image_path"] = imgbb
             else:
                 local = os.path.join(QUEUE_DIR, "images", f"{post['id']}.png")
                 post["image_path"] = local if os.path.exists(local) else None

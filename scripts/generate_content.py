@@ -155,11 +155,22 @@ Return ONLY valid JSON:
 }}
 CRITICAL: The caption must NOT contain any backticks, markdown code blocks, or triple backticks. Plain text only."""
 
-    message = client.messages.create(
-        model="claude-sonnet-4-20250514",
-        max_tokens=2000,
-        messages=[{"role": "user", "content": prompt}]
-    )
+    import time
+    for attempt in range(3):
+        try:
+            message = client.messages.create(
+                model="claude-sonnet-4-20250514",
+                max_tokens=2000,
+                messages=[{"role": "user", "content": prompt}]
+            )
+            break
+        except Exception as e:
+            if "rate_limit" in str(e).lower() or "429" in str(e):
+                wait = 60 * (attempt + 1)
+                print(f"Rate limit hit — waiting {wait}s before retry {attempt+1}/3")
+                time.sleep(wait)
+            else:
+                raise
 
     try:
         post_data = parse_claude_json(message.content[0].text)
