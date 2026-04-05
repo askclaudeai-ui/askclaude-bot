@@ -182,17 +182,26 @@ def publish_post(dry_run=False):
        
         # Upload image to Cloudinary — Late API can fetch from Cloudinary
         # ImgBB blocks external service requests
-        try:
-            import sys
-            sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-            from upload_media import upload_image_cloudinary_feed
-            image_url = upload_image_cloudinary_feed(image_path)
-            print(f"Image uploaded to Cloudinary: {image_url}")
-        except Exception as e:
-            print(f"Cloudinary upload failed: {e}, falling back to ImgBB")
-            image_url = upload_to_imgbb(image_path)
-            print(f"Image uploaded to ImgBB: {image_url}")
-
+        # Use existing Cloudinary URL if available — avoids re-uploading
+        existing_cloudinary = post.get("cloudinary_image_url")
+        if existing_cloudinary:
+            image_url = existing_cloudinary
+            print(f"Using existing Cloudinary URL: {image_url}")
+        else:
+            # Upload to Cloudinary fresh
+            try:
+                import sys
+                sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+                from upload_media import upload_image_cloudinary_feed
+                image_url = upload_image_cloudinary_feed(image_path)
+                print(f"Uploaded to Cloudinary: {image_url}")
+                # Save back to queue file
+                post["cloudinary_image_url"] = image_url
+                post["imgbb_url"]             = image_url
+                with open(path, "w") as f:
+                    json.dump(post, f, indent=2)
+            except Exception as e:
+                raise Exception(f"Cloudinary upload failed: {e}")
         # Publish via Late API
         late_key        = os.getenv("LATE_API_KEY")
         late_account_id = os.getenv("LATE_ACCOUNT_ID")

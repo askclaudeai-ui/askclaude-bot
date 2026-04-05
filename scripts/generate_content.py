@@ -242,12 +242,9 @@ Return ONLY valid JSON:
         except Exception as e:
             print(f"Cloudinary upload skipped: {e}")
 
-    # Email notification
-    try:
-        from notify import notify_post_ready
-        notify_post_ready(queue_entry)
-    except Exception as e:
-        print(f"Notification skipped: {e}")
+    # Email notification sent by generate_image.py after image is uploaded
+    # This ensures the email always has a valid image preview
+    print("Email notification will be sent after image is generated.")
 
     return filename, queue_entry
 

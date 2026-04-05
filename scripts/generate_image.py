@@ -166,6 +166,43 @@ def generate_image(queue_file):
     out_path = f"queue/images/{post_id}.png"
     img.save(out_path, "PNG", optimize=True)
     print(f"Image saved to {out_path}")
+
+    # Upload to Cloudinary immediately — needed for email preview and Late API publishing
+    try:
+        import sys
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        from upload_media import upload_image_cloudinary_feed
+        cloudinary_url = upload_image_cloudinary_feed(out_path)
+        print(f"Uploaded to Cloudinary: {cloudinary_url}")
+
+        # Update queue file with Cloudinary URL
+        queue_file_path = queue_file.replace("queue/images/", "queue/") \
+                                    .replace(f"/{post_id}.png", ".json")
+        # Find the correct queue file
+        for qf in os.listdir("queue"):
+            if qf.endswith(".json") and not qf.startswith("."):
+                qpath = f"queue/{qf}"
+                try:
+                    with open(qpath) as f:
+                        qdata = json.load(f)
+                    if qdata.get("id") == post_id:
+                        qdata["cloudinary_image_url"] = cloudinary_url
+                        qdata["imgbb_url"]             = cloudinary_url
+                        with open(qpath, "w") as f:
+                            json.dump(qdata, f, indent=2)
+                        print(f"Queue file updated: {qpath}")
+                        # Send email notification now that image is ready
+                        try:
+                            from notify import notify_post_ready
+                            notify_post_ready(qdata)
+                        except Exception as e:
+                            print(f"Notification skipped: {e}")
+                        break
+                except:
+                    continue
+    except Exception as e:
+        print(f"Cloudinary upload skipped: {e}")
+
     return out_path
 
 if __name__ == "__main__":
