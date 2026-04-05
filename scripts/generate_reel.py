@@ -163,14 +163,16 @@ def render_reel_frame(scene, post_id, scene_num, total_scenes,
     d.text((16, TAB_Y+11), fname, font=f_tab, fill=(204, 204, 204))
     d.text((340, TAB_Y+11), "strategy.json", font=f_tab, fill=(100, 100, 100))
 
-    # Code area
-    CODE_Y    = TAB_Y + TAB_H
+    # Code area — shifted down to avoid Instagram top UI overlay
+    CODE_Y    = TAB_Y + TAB_H + 220   # push down 220px for Instagram username/audio bar
     GUTTER_W  = 72
-    LINE_H    = 44
-    MAX_LINES = 28
-    f_code    = get_mono(28)
-    f_ln      = get_mono(20)
+    LINE_H    = 48
+    MAX_LINES = 18                     # fewer lines so content stays in safe zone
+    f_code    = get_mono(30)           # slightly larger for readability
+    f_ln      = get_mono(22)
 
+    # Limit visible area to avoid overlapping callout box
+    
     code_to_show = full_code[:visible_lines]
     highlight_ln = scene.get("highlight_line", visible_lines)
 
@@ -208,7 +210,11 @@ def render_reel_frame(scene, post_id, scene_num, total_scenes,
     OV_H      = OV_PAD + 30 + 8 + len(ov_lines)*line_h_ov + OV_PAD
 
     HANDLE_H = 52
-    OV_Y     = H - HANDLE_H - OV_H
+    INSTAGRAM_BOTTOM_UI = 320   # space for Instagram like/comment/share buttons
+    OV_Y     = H - HANDLE_H - OV_H - INSTAGRAM_BOTTOM_UI
+    # Recalculate MAX_LINES to avoid overlapping callout box
+    available_h = OV_Y - CODE_Y - 20
+    MAX_LINES   = max(4, min(MAX_LINES, available_h // LINE_H))
 
     d.rectangle([0, OV_Y, W, OV_Y+OV_H], fill=(13, 17, 23))
     d.line([(0, OV_Y), (W, OV_Y)], fill=ORANGE, width=3)
@@ -220,7 +226,7 @@ def render_reel_frame(scene, post_id, scene_num, total_scenes,
         y_ov += line_h_ov
 
     # Handle strip
-    BOT_Y = H - HANDLE_H
+    BOT_Y = H - HANDLE_H - INSTAGRAM_BOTTOM_UI
     d.rectangle([0, BOT_Y, W, H], fill=(13, 17, 23))
     d.line([(0, BOT_Y), (W, BOT_Y)], fill=(30, 30, 30), width=1)
     f_handle = get_mono(22)
