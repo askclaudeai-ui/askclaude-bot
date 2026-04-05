@@ -666,64 +666,58 @@ function regenImageOnly(postId) {
 
 def load_posts(filter_status=None):
     posts = []
-    github_token = os.getenv("GITHUB_TOKEN_PAT") or os.getenv("GITHUB_TOKEN")
-    github_repo  = os.getenv("GITHUB_REPO")
 
-    # On Render, read from GitHub API directly
-    if github_token and github_repo:
-        headers = {
-            "Authorization": f"token {github_token}",
-            "Accept":        "application/vnd.github.v3+json"
-        }
-        for folder in ["queue", "queue/stories"]:
-            r = requests.get(
-                f"https://api.github.com/repos/{github_repo}/contents/{folder}",
-                headers=headers
-            )
-            if r.status_code != 200:
-                continue
-            for item in r.json():
-                if not item.get("name","").endswith(".json"):
-                    continue
-                if item.get("type") != "file":
-                    continue
-                try:
-                    r2   = requests.get(item["download_url"])
-                    post = json.loads(r2.text)
+    # Collect all queue files — local filesystem
+    all_files = []
+    if os.path.exists(QUEUE_DIR):
+        for fname in os.listdir(QUEUE_DIR):
+            if fname.endswith(".json"):
+                all_files.append(os.path.join(QUEUE_DIR, fname))
 
-                    if post.get("status") == "ready_to_post":
-                        post["status"] = "pending"
+    # Also scan queue/stories/
+    stories_dir = os.path.join(QUEUE_DIR, "stories")
+    if os.path.exists(stories_dir):
+        for fname in os.listdir(stories_dir):
+            if fname.endswith(".json"):
+                all_files.append(os.path.join(stories_dir, fname))
 
-                    cloudinary_img = post.get("cloudinary_image_url")
-                    imgbb          = post.get("imgbb_url", "")
-                    if cloudinary_img:
-                        post["image_path"] = cloudinary_img
-                    elif imgbb and "cloudinary" in imgbb:
-                        post["image_path"] = imgbb
-                    elif imgbb:
-                        post["image_path"] = imgbb
-                    else:
-                        post["image_path"] = None
+    for path in sorted(all_files, reverse=True):
+        try:
+            with open(path, "r") as f:
+                post = json.load(f)
 
-                    post["cloudinary_video_url"]  = post.get("cloudinary_video_url")
-                    post["cloudinary_story_urls"] = post.get("cloudinary_story_urls", [])
-                    post["imgbb_slide_urls"]       = post.get("imgbb_slide_urls", [])
-                    post["manual_action"]          = post.get("manual_action", {})
-                    post["story_type"]             = post.get("story_type", "")
+            # Treat ready_to_post as pending for display
+            if post.get("status") == "ready_to_post":
+                post["status"] = "pending"
 
-                    if filter_status and filter_status != "all":
-                        if post.get("status") == filter_status:
-                            posts.append(post)
-                    else:
-                        posts.append(post)
-                except:
-                    continue
-        posts.sort(key=lambda x: x.get("created_at",""), reverse=True)
-        return posts
+            # Image URL — prefer Cloudinary
+            cloudinary_img = post.get("cloudinary_image_url")
+            imgbb          = post.get("imgbb_url", "")
+            if cloudinary_img:
+                post["image_path"] = cloudinary_img
+            elif imgbb and "cloudinary" in imgbb:
+                post["image_path"] = imgbb
+            elif imgbb:
+                post["image_path"] = imgbb
+            else:
+                local = os.path.join(QUEUE_DIR, "images", f"{post['id']}.png")
+                post["image_path"] = local if os.path.exists(local) else None
 
-    # Local fallback
-    if not os.path.exists(QUEUE_DIR):
-        return posts
+            post["cloudinary_video_url"]  = post.get("cloudinary_video_url")
+            post["cloudinary_story_urls"] = post.get("cloudinary_story_urls", [])
+            post["imgbb_slide_urls"]       = post.get("imgbb_slide_urls", [])
+            post["manual_action"]          = post.get("manual_action", {})
+            post["story_type"]             = post.get("story_type", "")
+
+            if filter_status and filter_status != "all":
+                if post.get("status") == filter_status:
+                    posts.append(post)
+            else:
+                posts.append(post)
+        except:
+            continue
+
+    return posts
 
 def count_posts():
     all_posts = load_posts()
