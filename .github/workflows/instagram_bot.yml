@@ -32,12 +32,11 @@ env:
 jobs:
 
   # ── Job 1: Generate feed content (9am Mon/Wed/Thu) ─────────────────
-  generate_feed:
+   generate_feed:
     if: >
-      github.event_name == 'workflow_dispatch' ||
-      (github.event_name == 'schedule' &&
-       (github.event.schedule == '0 9 * * 1,3,4' ||
-        contains(github.event.schedule, '0 9')))
+      github.event_name == 'schedule' &&
+      (github.event.schedule == '0 9 * * 1,3,4' ||
+       contains(github.event.schedule, '0 9'))
     runs-on: ubuntu-latest
     permissions:
       contents: write
