@@ -248,9 +248,7 @@ jobs:
 
   # ── Job 6: Publish on approval (triggered by dashboard) ─────────────
   publish_on_approval:
-    if: >
-      github.event_name == 'repository_dispatch' &&
-      github.event.action == 'publish_approved_post'
+    if: github.event.action == 'publish_approved_post'
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -305,9 +303,7 @@ if posts:
 
   # ── Job 7: Regenerate rejected content ──────────────────────────────
   regenerate_content:
-    if: >
-      github.event_name == 'repository_dispatch' &&
-      github.event.action == 'regenerate_content'
+    if: github.event.action == 'regenerate_content'
     runs-on: ubuntu-latest
     permissions:
       contents: write

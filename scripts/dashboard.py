@@ -754,7 +754,7 @@ def index():
 @app.route("/approve/<post_id>")
 def approve(post_id):
     update_status(post_id, "approved")
-    github_token = os.getenv("GITHUB_TOKEN")
+    github_token = os.getenv("GITHUB_TOKEN_PAT") or os.getenv("GITHUB_TOKEN")
     github_repo  = os.getenv("GITHUB_REPO")
     if github_token and github_repo:
         try:
@@ -787,7 +787,7 @@ def reject(post_id):
         print(f"Deleted rejected post: {path}")
     except Exception as e:
         print(f"Could not delete: {e}")
-    github_token = os.getenv("GITHUB_TOKEN")
+    github_token = os.getenv("GITHUB_TOKEN_PAT") or os.getenv("GITHUB_TOKEN")
     github_repo  = os.getenv("GITHUB_REPO")
     if github_token and github_repo:
         try:
@@ -842,7 +842,7 @@ def feedback_post():
         post["status"]           = "regenerating"
         with open(path, "w") as f:
             json.dump(post, f, indent=2)
-    github_token = os.getenv("GITHUB_TOKEN")
+    github_token = os.getenv("GITHUB_TOKEN_PAT") or os.getenv("GITHUB_TOKEN")
     github_repo  = os.getenv("GITHUB_REPO")
     if github_token and github_repo:
         try:
