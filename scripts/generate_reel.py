@@ -136,6 +136,119 @@ def render_code_line(d, x, y, line, font, highlight=False, line_h=44):
         bbox = d.textbbox((cx, y + 5), text, font=font)
         cx += bbox[2] - bbox[0]
 
+def render_cover_frame(hook, topic, W=1080, H=1920):
+    """Branded cover frame in cream+indigo palette shown before reel plays."""
+    BG     = (255, 243, 208)
+    BG2    = (255, 232, 150)
+    INDIGO = (55,  48,  163)
+    GOLD   = (217, 119,   6)
+    TEXT   = (30,  27,   75)
+    MID    = (61,  56,  120)
+    GRID   = (210, 180,  80)
+
+    img = Image.new("RGB", (W, H), BG)
+    d   = ImageDraw.Draw(img)
+
+    # Grid
+    for x in range(0, W, W//4): d.line([(x,0),(x,H)], fill=GRID, width=1)
+    for y in range(0, H, H//6): d.line([(0,y),(W,y)], fill=GRID, width=1)
+
+    # Top and bottom bars
+    d.rectangle([0, 0,   W, 12], fill=INDIGO)
+    d.rectangle([0, H-12, W, H], fill=GOLD)
+    d.rectangle([0, 0, 12, H],   fill=INDIGO)
+
+    # Logo bubble — centred upper third
+    def draw_logo(cx, y, size=220):
+        bw  = size
+        bh  = int(size * 0.65)
+        bx  = cx - bw//2
+        rad = int(bw * 0.15)
+        sw  = max(4, size//20)
+        pad = int(bw * 0.13)
+        t   = int(bw * 0.11)
+        tip = y + bh + int(bh * 0.30)
+        d.polygon([(cx-t,y+bh),(cx+t,y+bh),(cx,tip)], fill=INDIGO)
+        d.rounded_rectangle([bx,y,bx+bw,y+bh], radius=rad, fill=BG2)
+        d.rounded_rectangle([bx,y,bx+bw,y+bh], radius=rad, outline=INDIGO, width=sw)
+        bar_h = int(bh*0.18)
+        d.rounded_rectangle([bx+pad,y+pad,bx+bw-pad,y+pad+bar_h],
+                             radius=bar_h//2, fill=INDIGO)
+        yb = y+pad+bar_h+int(bh*0.08)
+        for op, wr in [(1.0,0.9),(0.65,0.7),(0.40,0.5)]:
+            bh2 = int(bh*0.10)
+            bw2 = int((bw-pad*2)*wr)
+            c   = tuple(int(GOLD[i]*op+BG2[i]*(1-op)) for i in range(3))
+            d.rounded_rectangle([bx+pad,yb,bx+pad+bw2,yb+bh2],
+                                 radius=bh2//2, fill=c)
+            yb += bh2+int(bh*0.07)
+
+    draw_logo(W//2, 280)
+
+    # "ASK CLAUDE" label
+    f_label = get_font(36, True)
+    d.text((W//2, 660), "ASK CLAUDE", font=f_label, fill=INDIGO, anchor="mm")
+
+    # Reel label pill
+    f_pill = get_font(28, True)
+    pill_w = 200
+    d.rounded_rectangle([(W-pill_w)//2, 710, (W+pill_w)//2, 766],
+                         radius=28, fill=INDIGO)
+    d.text((W//2, 738), "NEW REEL", font=f_pill, fill=BG, anchor="mm")
+
+    # Hook text — large, centred
+    f_hook = get_font(80, True)
+    words  = hook.split()
+    lines, current = [], []
+    for word in words:
+        test = " ".join(current + [word])
+        bbox = d.textbbox((0,0), test, font=f_hook)
+        if bbox[2]-bbox[0] <= W-120:
+            current.append(word)
+        else:
+            if current: lines.append(" ".join(current))
+            current = [word]
+    if current: lines.append(" ".join(current))
+
+    y_hook = 840
+    for i, line in enumerate(lines[:4]):
+        bbox = d.textbbox((0,0), line, font=f_hook)
+        tw   = bbox[2]-bbox[0]
+        col  = INDIGO if i >= len(lines)//2 else TEXT
+        d.text(((W-tw)//2, y_hook), line, font=f_hook, fill=col)
+        y_hook += 96
+
+    # Topic subtext
+    f_sub = get_font(44)
+    words2 = topic.split()
+    lines2, cur2 = [], []
+    for word in words2:
+        test = " ".join(cur2+[word])
+        bbox = d.textbbox((0,0), test, font=f_sub)
+        if bbox[2]-bbox[0] <= W-160:
+            cur2.append(word)
+        else:
+            if cur2: lines2.append(" ".join(cur2))
+            cur2 = [word]
+    if cur2: lines2.append(" ".join(cur2))
+    y_sub = y_hook + 40
+    for line in lines2[:2]:
+        bbox = d.textbbox((0,0), line, font=f_sub)
+        tw   = bbox[2]-bbox[0]
+        d.text(((W-tw)//2, y_sub), line, font=f_sub, fill=MID)
+        y_sub += 56
+
+    # Watch prompt
+    f_watch = get_font(40, True)
+    d.text((W//2, 1600), "Watch to learn →", font=f_watch, fill=GOLD, anchor="mm")
+
+    # Handle
+    f_handle = get_mono(32)
+    d.text((W//2, 1720), "@ask.claudeai", font=f_handle, fill=MID, anchor="mm")
+    d.text((W//2, 1780), "New reel every Thu", font=get_mono(28), fill=GRID, anchor="mm")
+
+    return img
+
 def render_reel_frame(scene, post_id, scene_num, total_scenes,
                       full_code, visible_lines):
     W, H = 1080, 1920
@@ -506,6 +619,9 @@ def generate_reel():
     frames_dir  = f"queue/images/{post_id}"
     os.makedirs(frames_dir, exist_ok=True)
     frame_paths = []
+    print(f"\nRendering {len(scenes)} frames...")
+
+    
 
     print(f"\nRendering {len(scenes)} frames...")
     for i, scene in enumerate(scenes):
@@ -520,6 +636,21 @@ def generate_reel():
         frame_paths.append(path)
         print(f"  Frame {i+1}/{len(scenes)} — {visible} lines visible")
 
+    # Generate and upload cover image for Instagram reel thumbnail
+    cover_cloudinary_url = None
+    try:
+        hook_text  = data.get("hook", data.get("topic", "Claude API Tutorial"))
+        topic_text = data.get("topic", "Claude API")
+        cover_img  = render_cover_frame(hook_text, topic_text)
+        cover_path = f"{frames_dir}/cover.png"
+        cover_img.save(cover_path, "PNG", optimize=True)
+        print("Cover image saved")
+
+        from upload_media import upload_image_cloudinary_feed
+        cover_cloudinary_url = upload_image_cloudinary_feed(cover_path)
+        print(f"Cover uploaded: {cover_cloudinary_url}")
+    except Exception as e:
+        print(f"Cover generation skipped: {e}")
     # Assemble video
     video_path = None
     if audio_ok and combined_audio:
@@ -543,7 +674,8 @@ def generate_reel():
         "published_at":     None,
         "instagram_media_id": None,
         "imgbb_url":        None,
-        "cloudinary_video_url": None,
+        "cloudinary_video_url":  video_path,
+        "cover_cloudinary_url":  cover_cloudinary_url,
         "generation_inputs": {
             "strategy_snapshot": {
                 "model_phase":    strategy["meta"]["model_phase"],

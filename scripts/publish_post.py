@@ -160,6 +160,13 @@ def publish_post(dry_run=False):
             if not video_url:
                 raise Exception("No Cloudinary video URL found for reel")
             media_items = [{"type": "video", "url": video_url}]
+            cover_url  = post.get("cover_cloudinary_url")
+            if cover_url:
+                payload["platforms"][0]["platformSpecificData"] = {
+                    "contentType": "reel",
+                    "coverUrl":    cover_url
+                }
+                print(f"Reel cover: {cover_url}")
             print(f"Reel video: {video_url}")
 
         elif content_type == "story":
