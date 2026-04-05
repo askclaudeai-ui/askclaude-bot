@@ -179,16 +179,62 @@ def publish_post(dry_run=False):
         return True
 
     try:
-        image_url    = upload_to_imgbb(image_path)
-        container_id = create_media_container(image_url, full_caption)
-        media_id     = publish_container(container_id)
-        update_queue_file(path, post, media_id)
-        print(f"\nSuccess! Published to Instagram.")
-        print(f"Instagram media ID: {media_id}")
-        return True
+       
+        # Upload image to Cloudinary — Late API can fetch from Cloudinary
+        # ImgBB blocks external service requests
+        try:
+            import sys
+            sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+            from upload_media import upload_image_cloudinary_feed
+            image_url = upload_image_cloudinary_feed(image_path)
+            print(f"Image uploaded to Cloudinary: {image_url}")
+        except Exception as e:
+            print(f"Cloudinary upload failed: {e}, falling back to ImgBB")
+            image_url = upload_to_imgbb(image_path)
+            print(f"Image uploaded to ImgBB: {image_url}")
+
+        # Publish via Late API
+        late_key        = os.getenv("LATE_API_KEY")
+        late_account_id = os.getenv("LATE_ACCOUNT_ID")
+
+        if not late_key or not late_account_id:
+            raise Exception("LATE_API_KEY or LATE_ACCOUNT_ID not set in .env")
+
+        print("Publishing via Late API...")
+        r = requests.post(
+            "https://getlate.dev/api/v1/posts",
+            headers={
+                "Authorization": f"Bearer {late_key}",
+                "Content-Type":  "application/json"
+            },
+            json={
+                "platforms": [{
+                    "platform":  "instagram",
+                    "accountId": late_account_id
+                }],
+                "content":    full_caption,
+                "mediaItems": [{"type": "image", "url": image_url}],
+                "publishNow": True
+            }
+        )
+        result = r.json()
+        print(f"Late API status: {r.status_code}")
+        print(f"Late API full response: {json.dumps(result, indent=2)}")
+
+        # Extract post ID from response
+        post_obj = result.get("post", {})
+        media_id = post_obj.get("_id")
+
+        if r.status_code in (200, 201) and media_id:
+            update_queue_file(path, post, media_id)
+            print(f"\nSuccess! Published via Late API.")
+            print(f"Post ID: {media_id}")
+            return True
+        else:
+            raise Exception(f"Late API error: {result.get('message', result)}")
 
     except Exception as e:
-        print(f"\nMeta API publish failed: {e}")
+        print(f"\nPublish failed: {e}")
         print("Falling back to manual publish package...")
         notify_manual_publish(path, post, image_path, full_caption)
         return False
