@@ -882,7 +882,29 @@ def serve_image(post_id):
     if os.path.exists(path):
         return send_file(path, mimetype="image/png")
     return "No image", 404
-
+@app.route("/test_dispatch")
+def test_dispatch():
+    github_token = os.getenv("GITHUB_TOKEN_PAT") or os.getenv("GITHUB_TOKEN")
+    github_repo  = os.getenv("GITHUB_REPO")
+    if not github_token:
+        return f"ERROR: No GitHub token found in environment", 500
+    if not github_repo:
+        return f"ERROR: No GitHub repo found in environment", 500
+    try:
+        r = requests.post(
+            f"https://api.github.com/repos/{github_repo}/dispatches",
+            headers={
+                "Authorization": f"token {github_token}",
+                "Accept":        "application/vnd.github.v3+json"
+            },
+            json={
+                "event_type":     "publish_approved_post",
+                "client_payload": {"post_id": "test_from_render"}
+            }
+        )
+        return f"Status: {r.status_code} | Token starts with: {github_token[:8]} | Repo: {github_repo} | Response: {r.text}"
+    except Exception as e:
+        return f"ERROR: {e}", 500
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(debug=False, host="0.0.0.0", port=port)
