@@ -666,59 +666,64 @@ function regenImageOnly(postId) {
 
 def load_posts(filter_status=None):
     posts = []
-    if not os.path.exists(QUEUE_DIR):
+    github_token = os.getenv("GITHUB_TOKEN_PAT") or os.getenv("GITHUB_TOKEN")
+    github_repo  = os.getenv("GITHUB_REPO")
+
+    # On Render, read from GitHub API directly
+    if github_token and github_repo:
+        headers = {
+            "Authorization": f"token {github_token}",
+            "Accept":        "application/vnd.github.v3+json"
+        }
+        for folder in ["queue", "queue/stories"]:
+            r = requests.get(
+                f"https://api.github.com/repos/{github_repo}/contents/{folder}",
+                headers=headers
+            )
+            if r.status_code != 200:
+                continue
+            for item in r.json():
+                if not item.get("name","").endswith(".json"):
+                    continue
+                if item.get("type") != "file":
+                    continue
+                try:
+                    r2   = requests.get(item["download_url"])
+                    post = json.loads(r2.text)
+
+                    if post.get("status") == "ready_to_post":
+                        post["status"] = "pending"
+
+                    cloudinary_img = post.get("cloudinary_image_url")
+                    imgbb          = post.get("imgbb_url", "")
+                    if cloudinary_img:
+                        post["image_path"] = cloudinary_img
+                    elif imgbb and "cloudinary" in imgbb:
+                        post["image_path"] = imgbb
+                    elif imgbb:
+                        post["image_path"] = imgbb
+                    else:
+                        post["image_path"] = None
+
+                    post["cloudinary_video_url"]  = post.get("cloudinary_video_url")
+                    post["cloudinary_story_urls"] = post.get("cloudinary_story_urls", [])
+                    post["imgbb_slide_urls"]       = post.get("imgbb_slide_urls", [])
+                    post["manual_action"]          = post.get("manual_action", {})
+                    post["story_type"]             = post.get("story_type", "")
+
+                    if filter_status and filter_status != "all":
+                        if post.get("status") == filter_status:
+                            posts.append(post)
+                    else:
+                        posts.append(post)
+                except:
+                    continue
+        posts.sort(key=lambda x: x.get("created_at",""), reverse=True)
         return posts
 
-    # Collect all queue files — feed posts and stories
-    all_files = []
-    for fname in os.listdir(QUEUE_DIR):
-        if fname.endswith(".json"):
-            all_files.append(os.path.join(QUEUE_DIR, fname))
-    # Also scan queue/stories/
-    stories_dir = os.path.join(QUEUE_DIR, "stories")
-    if os.path.exists(stories_dir):
-        for fname in os.listdir(stories_dir):
-            if fname.endswith(".json"):
-                all_files.append(os.path.join(stories_dir, fname))
-
-    for path in sorted(all_files, reverse=True):
-        try:
-            with open(path, "r") as f:
-                post = json.load(f)
-
-            # Skip ready_to_post — treat as pending for display
-            if post.get("status") == "ready_to_post":
-                post["status"] = "pending"
-
-            # Image URL — prefer Cloudinary
-            cloudinary_img = post.get("cloudinary_image_url")
-            imgbb          = post.get("imgbb_url", "")
-            imgbb_is_cloud = imgbb and "cloudinary" in imgbb
-
-            if cloudinary_img:
-                post["image_path"] = cloudinary_img
-            elif imgbb_is_cloud:
-                post["image_path"] = imgbb
-            elif imgbb:
-                post["image_path"] = imgbb
-            else:
-                local = os.path.join(QUEUE_DIR, "images", f"{post['id']}.png")
-                post["image_path"] = local if os.path.exists(local) else None
-
-            post["cloudinary_video_url"]  = post.get("cloudinary_video_url")
-            post["cloudinary_story_urls"] = post.get("cloudinary_story_urls", [])
-            post["imgbb_slide_urls"]      = post.get("imgbb_slide_urls", [])
-            post["manual_action"]         = post.get("manual_action", {})
-            post["story_type"]            = post.get("story_type", "")
-
-            if filter_status and filter_status != "all":
-                if post.get("status") == filter_status:
-                    posts.append(post)
-            else:
-                posts.append(post)
-        except:
-            continue
-    return posts
+    # Local fallback
+    if not os.path.exists(QUEUE_DIR):
+        return posts
 
 def count_posts():
     all_posts = load_posts()
@@ -745,14 +750,57 @@ def find_post_file(post_id):
             continue
     return None, None
 
+def update_status_github(post_id, new_status):
+    """Update post status directly on GitHub — works on Render's ephemeral filesystem."""
+    github_token = os.getenv("GITHUB_TOKEN_PAT") or os.getenv("GITHUB_TOKEN")
+    github_repo  = os.getenv("GITHUB_REPO")
+    if not github_token or not github_repo:
+        return False
+
+    headers = {
+        "Authorization": f"token {github_token}",
+        "Accept":        "application/vnd.github.v3+json"
+    }
+
+    for folder in ["queue", "queue/stories"]:
+        r = requests.get(
+            f"https://api.github.com/repos/{github_repo}/contents/{folder}",
+            headers=headers
+        )
+        if r.status_code != 200:
+            continue
+        for item in r.json():
+            if item.get("type") == "file" and post_id in item.get("name", ""):
+                r2      = requests.get(item["download_url"])
+                data    = json.loads(r2.text)
+                data["status"] = new_status
+                import base64
+                r_put = requests.put(
+                    f"https://api.github.com/repos/{github_repo}/contents/{item['path']}",
+                    headers=headers,
+                    json={
+                        "message": f"Set {post_id} to {new_status}",
+                        "content": base64.b64encode(
+                            json.dumps(data, indent=2).encode()
+                        ).decode(),
+                        "sha":    item["sha"],
+                        "branch": "main"
+                    }
+                )
+                return r_put.status_code in (200, 201)
+    return False
+
 def update_status(post_id, new_status):
+    # Try GitHub API first (works on Render), fall back to local
+    if update_status_github(post_id, new_status):
+        return True
     path, post = find_post_file(post_id)
     if post:
         post["status"] = new_status
         with open(path, "w") as f:
             json.dump(post, f, indent=2)
         return True
-    return False
+    return False 
 
 @app.route("/")
 def index():
@@ -766,83 +814,89 @@ def index():
 
 @app.route("/approve/<post_id>")
 def approve(post_id):
-    # Update status locally
-    update_status(post_id, "approved")
-
     github_token = os.getenv("GITHUB_TOKEN_PAT") or os.getenv("GITHUB_TOKEN")
     github_repo  = os.getenv("GITHUB_REPO")
 
-    if github_token and github_repo:
+    if not github_token or not github_repo:
+        update_status(post_id, "approved")
+        return redirect(url_for("index", filter="approved"))
+
+    headers = {
+        "Authorization": f"token {github_token}",
+        "Accept":        "application/vnd.github.v3+json"
+    }
+
+    # Search for the queue file on GitHub directly
+    github_path = None
+    sha         = None
+    content_str = None
+
+    for prefix in [f"queue/{post_id}", f"queue/stories/{post_id}"]:
+        # List queue files to find the right one
+        pass
+
+    # Search all queue files on GitHub
+    for folder in ["queue", "queue/stories"]:
+        r = requests.get(
+            f"https://api.github.com/repos/{github_repo}/contents/{folder}",
+            headers=headers
+        )
+        if r.status_code != 200:
+            continue
+        for item in r.json():
+            if item.get("type") == "file" and post_id in item["name"]:
+                github_path = item["path"]
+                sha         = item["sha"]
+                # Get file content
+                r2 = requests.get(item["download_url"])
+                content_str = r2.text
+                break
+        if github_path:
+            break
+
+    if not github_path or not content_str:
+        print(f"Post {post_id} not found on GitHub")
+        update_status(post_id, "approved")
+    else:
         try:
-            # Find the queue file and commit it to GitHub via API
-            path, post = find_post_file(post_id)
-            if path and post:
-                import base64
+            import base64
+            data = json.loads(content_str)
+            data["status"] = "approved"
+            updated = json.dumps(data, indent=2)
 
-                # Read the updated file
-                with open(path, "r") as f:
-                    content = f.read()
-
-                # Get current file SHA from GitHub
-                fname    = os.path.basename(path)
-                # Check if it's in stories subfolder
-                if "stories" in path:
-                    github_path = f"queue/stories/{fname}"
-                else:
-                    github_path = f"queue/{fname}"
-
-                r_get = requests.get(
-                    f"https://api.github.com/repos/{github_repo}/contents/{github_path}",
-                    headers={
-                        "Authorization": f"token {github_token}",
-                        "Accept":        "application/vnd.github.v3+json"
-                    }
-                )
-                sha = r_get.json().get("sha") if r_get.status_code == 200 else None
-
-                # Commit updated file to GitHub
-                payload = {
+            r_put = requests.put(
+                f"https://api.github.com/repos/{github_repo}/contents/{github_path}",
+                headers=headers,
+                json={
                     "message": f"Approved post {post_id}",
-                    "content": base64.b64encode(content.encode()).decode(),
+                    "content": base64.b64encode(updated.encode()).decode(),
+                    "sha":     sha,
                     "branch":  "main"
                 }
-                if sha:
-                    payload["sha"] = sha
-
-                r_put = requests.put(
-                    f"https://api.github.com/repos/{github_repo}/contents/{github_path}",
-                    headers={
-                        "Authorization": f"token {github_token}",
-                        "Accept":        "application/vnd.github.v3+json"
-                    },
-                    json=payload
-                )
-                if r_put.status_code in (200, 201):
-                    print(f"Queue file committed to GitHub: {github_path}")
-                else:
-                    print(f"GitHub commit failed: {r_put.status_code} {r_put.text}")
-
-            # Trigger publish workflow
-            import time
-            time.sleep(3)  # Let GitHub process the commit
-            r = requests.post(
-                f"https://api.github.com/repos/{github_repo}/dispatches",
-                headers={
-                    "Authorization": f"token {github_token}",
-                    "Accept":        "application/vnd.github.v3+json"
-                },
-                json={
-                    "event_type":     "publish_approved_post",
-                    "client_payload": {"post_id": post_id}
-                }
             )
-            if r.status_code == 204:
-                print(f"GitHub Actions publish triggered for {post_id}")
+            if r_put.status_code in (200, 201):
+                print(f"Committed approved status to GitHub: {github_path}")
             else:
-                print(f"Dispatch failed: {r.status_code} {r.text}")
-
+                print(f"GitHub commit failed: {r_put.status_code} {r_put.text}")
         except Exception as e:
-            print(f"Could not trigger publish: {e}")
+            print(f"Error updating GitHub file: {e}")
+
+    # Wait for GitHub to process then dispatch
+    import time
+    time.sleep(5)
+
+    try:
+        r = requests.post(
+            f"https://api.github.com/repos/{github_repo}/dispatches",
+            headers=headers,
+            json={
+                "event_type":     "publish_approved_post",
+                "client_payload": {"post_id": post_id}
+            }
+        )
+        print(f"Dispatch status: {r.status_code}")
+    except Exception as e:
+        print(f"Dispatch failed: {e}")
 
     return redirect(url_for("index", filter="approved"))
 
