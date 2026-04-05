@@ -766,11 +766,65 @@ def index():
 
 @app.route("/approve/<post_id>")
 def approve(post_id):
+    # Update status locally
     update_status(post_id, "approved")
+
     github_token = os.getenv("GITHUB_TOKEN_PAT") or os.getenv("GITHUB_TOKEN")
     github_repo  = os.getenv("GITHUB_REPO")
+
     if github_token and github_repo:
         try:
+            # Find the queue file and commit it to GitHub via API
+            path, post = find_post_file(post_id)
+            if path and post:
+                import base64
+
+                # Read the updated file
+                with open(path, "r") as f:
+                    content = f.read()
+
+                # Get current file SHA from GitHub
+                fname    = os.path.basename(path)
+                # Check if it's in stories subfolder
+                if "stories" in path:
+                    github_path = f"queue/stories/{fname}"
+                else:
+                    github_path = f"queue/{fname}"
+
+                r_get = requests.get(
+                    f"https://api.github.com/repos/{github_repo}/contents/{github_path}",
+                    headers={
+                        "Authorization": f"token {github_token}",
+                        "Accept":        "application/vnd.github.v3+json"
+                    }
+                )
+                sha = r_get.json().get("sha") if r_get.status_code == 200 else None
+
+                # Commit updated file to GitHub
+                payload = {
+                    "message": f"Approved post {post_id}",
+                    "content": base64.b64encode(content.encode()).decode(),
+                    "branch":  "main"
+                }
+                if sha:
+                    payload["sha"] = sha
+
+                r_put = requests.put(
+                    f"https://api.github.com/repos/{github_repo}/contents/{github_path}",
+                    headers={
+                        "Authorization": f"token {github_token}",
+                        "Accept":        "application/vnd.github.v3+json"
+                    },
+                    json=payload
+                )
+                if r_put.status_code in (200, 201):
+                    print(f"Queue file committed to GitHub: {github_path}")
+                else:
+                    print(f"GitHub commit failed: {r_put.status_code} {r_put.text}")
+
+            # Trigger publish workflow
+            import time
+            time.sleep(3)  # Let GitHub process the commit
             r = requests.post(
                 f"https://api.github.com/repos/{github_repo}/dispatches",
                 headers={
@@ -784,8 +838,12 @@ def approve(post_id):
             )
             if r.status_code == 204:
                 print(f"GitHub Actions publish triggered for {post_id}")
+            else:
+                print(f"Dispatch failed: {r.status_code} {r.text}")
+
         except Exception as e:
             print(f"Could not trigger publish: {e}")
+
     return redirect(url_for("index", filter="approved"))
 
 @app.route("/reject/<post_id>")
