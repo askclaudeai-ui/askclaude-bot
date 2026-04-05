@@ -274,23 +274,7 @@ jobs:
         run: python scripts/publish_post.py
 
       - name: Send publish confirmation email
-        run: |
-          python3 -c "
-import json, os, sys, glob
-sys.path.insert(0, 'scripts')
-from notify import notify_post_published
-posts = []
-for f in glob.glob('queue/*.json'):
-    try:
-        d = json.load(open(f))
-        if d.get('status') == 'published':
-            posts.append(d)
-    except: pass
-if posts:
-    posts.sort(key=lambda x: x.get('published_at',''), reverse=True)
-    p = posts[0]
-    notify_post_published(p, p.get('instagram_media_id',''))
-"
+        run: python scripts/notify_published.py
 
       - name: Commit published status
         run: |
