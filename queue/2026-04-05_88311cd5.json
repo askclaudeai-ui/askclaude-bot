@@ -1,11 +1,11 @@
 {
-  "id": "ab250599",
+  "id": "88311cd5",
   "content_type": "static",
   "status": "pending",
-  "created_at": "2026-04-05T15:31:20.910205",
+  "created_at": "2026-04-05T15:35:07.532493",
   "published_at": null,
   "instagram_media_id": null,
-  "imgbb_url": "https://res.cloudinary.com/djpivam1q/image/upload/v1775399708/askclaude_feed/ab250599_1775399707.png",
+  "imgbb_url": null,
   "generation_inputs": {
     "strategy_snapshot": {
       "model_phase": "bootstrap",
@@ -115,13 +115,13 @@
       ],
       "research_date": "2026-03-29"
     },
-    "topic_cluster": "Migrating from output_format to output_config.format",
+    "topic_cluster": "Implementing automatic caching with single cache_control field",
     "hook_style_used": "how_to"
   },
   "post": {
-    "topic": "using output_config.format for structured responses",
-    "hook": "How to get structured JSON from Claude without prompt engineering",
-    "caption": "Stop fighting with prompt templates to get JSON responses. Claude's output_config.format parameter guarantees structured output every time.\n\nInstead of hoping your prompt works:\n- Set format: 'json' in output_config\n- Define your schema once\n- Get consistent responses without retry logic\n\nThis replaces the old output_format parameter and works with any model version. Perfect for APIs where you need reliable data structure.\n\nThe response will always match your expected format - no more parsing errors or malformed JSON breaking your app.\n\nSave this for your next Claude integration! \ud83d\udccc",
+    "topic": "handling claude api rate limits with exponential backoff",
+    "hook": "How to handle Claude API rate limits like a pro developer",
+    "caption": "Getting 429 errors from Claude API? Here's how to implement exponential backoff properly. Start with a 1-second delay, double it after each failure, and add random jitter to prevent thundering herd problems. Set a max retry limit (usually 3-5) and different backoff strategies for different error types. Rate limit errors need exponential backoff, but server errors might just need a quick retry. Pro tip: Log your retry attempts with timestamps - this data helps you optimize your retry strategy and understand your usage patterns better.",
     "hashtags": [
       "#claudeai",
       "#anthropic",
@@ -143,8 +143,8 @@
       "#aitools"
     ],
     "audio_suggestion": "original audio",
-    "image_text": "output_config.format for structured JSON",
-    "image_subtext": "No more prompt engineering for format"
+    "image_text": "Handle Claude API Rate Limits Properly",
+    "image_subtext": "Exponential backoff + jitter implementation"
   },
   "scheduling": {
     "recommended_day": "thursday",
@@ -158,6 +158,5 @@
     "predicted_reach": null,
     "prediction_confidence": null,
     "model_phase_at_prediction": "bootstrap"
-  },
-  "cloudinary_image_url": "https://res.cloudinary.com/djpivam1q/image/upload/v1775399708/askclaude_feed/ab250599_1775399707.png"
+  }
 }
