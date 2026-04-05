@@ -2,12 +2,12 @@ name: Ask Claude Bot
 
 on:
   schedule:
-    - cron: '0 9 * * 1,3,4'      # generate feed: 9am UTC Mon/Wed/Thu
-    - cron: '0 18 * * 1,3,4'     # publish feed: 6pm UTC Mon/Wed/Thu
-    - cron: '30 22 * * 1,3,4'    # generate story: 10:30pm UTC Mon/Wed/Thu
-    - cron: '0 10 * * *'         # fetch story insights: 10am UTC daily
-    - cron: '0 8 * * 0'          # weekly optimise: Sunday 8am UTC
-    - cron: '0 */14 * * *'       # keep Render awake: every 14 hours
+    - cron: '0 9 * * 1,3,4'
+    - cron: '0 18 * * 1,3,4'
+    - cron: '30 22 * * 1,3,4'
+    - cron: '0 10 * * *'
+    - cron: '0 8 * * 0'
+    - cron: '0 */14 * * *'
   workflow_dispatch:
   repository_dispatch:
     types: [publish_approved_post, regenerate_content]
@@ -27,12 +27,18 @@ env:
   GITHUB_TOKEN_PAT:         ${{ secrets.GITHUB_TOKEN_PAT }}
   GITHUB_REPO:              ${{ secrets.GITHUB_REPO }}
   DASHBOARD_URL:            ${{ secrets.DASHBOARD_URL }}
+  LATE_API_KEY:             ${{ secrets.LATE_API_KEY }}
+  LATE_ACCOUNT_ID:          ${{ secrets.LATE_ACCOUNT_ID }}
 
 jobs:
 
   # ── Job 1: Generate feed content (9am Mon/Wed/Thu) ─────────────────
   generate_feed:
-    if: github.event.schedule == '0 9 * * 1,3,4' || github.event_name == 'workflow_dispatch'
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'schedule' &&
+       (github.event.schedule == '0 9 * * 1,3,4' ||
+        contains(github.event.schedule, '0 9')))
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -82,7 +88,10 @@ jobs:
 
   # ── Job 2: Publish feed post (6pm Mon/Wed/Thu) ─────────────────────
   publish_feed:
-    if: github.event.schedule == '0 18 * * 1,3,4'
+    if: >
+      github.event_name == 'schedule' &&
+      (github.event.schedule == '0 18 * * 1,3,4' ||
+       contains(github.event.schedule, '0 18'))
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -115,7 +124,10 @@ jobs:
 
   # ── Job 3: Generate story (10:30pm Mon/Wed/Thu) ─────────────────────
   generate_story:
-    if: github.event.schedule == '30 22 * * 1,3,4'
+    if: >
+      github.event_name == 'schedule' &&
+      (github.event.schedule == '30 22 * * 1,3,4' ||
+       contains(github.event.schedule, '30 22'))
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -156,7 +168,10 @@ jobs:
 
   # ── Job 4: Fetch story insights (10am daily) ────────────────────────
   fetch_story_insights:
-    if: github.event.schedule == '0 10 * * *'
+    if: >
+      github.event_name == 'schedule' &&
+      (github.event.schedule == '0 10 * * *' ||
+       contains(github.event.schedule, '0 10'))
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -186,7 +201,10 @@ jobs:
 
   # ── Job 5: Weekly optimise (Sunday 8am) ─────────────────────────────
   weekly_optimise:
-    if: github.event.schedule == '0 8 * * 0'
+    if: >
+      github.event_name == 'schedule' &&
+      (github.event.schedule == '0 8 * * 0' ||
+       contains(github.event.schedule, '0 8'))
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -230,7 +248,9 @@ jobs:
 
   # ── Job 6: Publish on approval (triggered by dashboard) ─────────────
   publish_on_approval:
-    if: github.event_name == 'repository_dispatch' && github.event.action == 'publish_approved_post'
+    if: >
+      github.event_name == 'repository_dispatch' &&
+      github.event.action == 'publish_approved_post'
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -285,7 +305,9 @@ if posts:
 
   # ── Job 7: Regenerate rejected content ──────────────────────────────
   regenerate_content:
-    if: github.event_name == 'repository_dispatch' && github.event.action == 'regenerate_content'
+    if: >
+      github.event_name == 'repository_dispatch' &&
+      github.event.action == 'regenerate_content'
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -309,25 +331,35 @@ if posts:
         run: |
           CONTENT_TYPE="${{ github.event.client_payload.content_type }}"
           STORY_TYPE="${{ github.event.client_payload.story_type }}"
-          case $CONTENT_TYPE in
-            static)   python scripts/generate_content.py static && python scripts/generate_image.py ;;
-            carousel) python scripts/generate_carousel.py ;;
-            reel)     python scripts/generate_reel.py ;;
-            story)    python scripts/generate_story.py $STORY_TYPE ;;
-            *)        python scripts/generate_content.py static && python scripts/generate_image.py ;;
-          esac
+          POST_ID="${{ github.event.client_payload.post_id }}"
+          FEEDBACK="${{ github.event.client_payload.feedback }}"
+
+          if [ -n "$POST_ID" ] && [ -n "$FEEDBACK" ]; then
+            python scripts/regenerate_post.py "$POST_ID" "$FEEDBACK"
+          else
+            case $CONTENT_TYPE in
+              static)   python scripts/generate_content.py static && python scripts/generate_image.py ;;
+              carousel) python scripts/generate_carousel.py ;;
+              reel)     python scripts/generate_reel.py ;;
+              story)    python scripts/generate_story.py $STORY_TYPE ;;
+              *)        python scripts/generate_content.py static && python scripts/generate_image.py ;;
+            esac
+          fi
 
       - name: Commit regenerated content
         run: |
           git config user.name  "Ask Claude Bot"
           git config user.email "askclaudeai@gmail.com"
           git add queue/ data/
-          git diff --staged --quiet || git commit -m "Regenerated replacement content $(date +%Y-%m-%d)"
+          git diff --staged --quiet || git commit -m "Regenerated content $(date +%Y-%m-%d)"
           git push
 
   # ── Job 8: Keep Render dashboard awake ──────────────────────────────
   keep_alive:
-    if: github.event.schedule == '0 */14 * * *'
+    if: >
+      github.event_name == 'schedule' &&
+      (github.event.schedule == '0 */14 * * *' ||
+       contains(github.event.schedule, '*/14'))
     runs-on: ubuntu-latest
     steps:
       - name: Ping dashboard

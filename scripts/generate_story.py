@@ -744,6 +744,15 @@ def generate_story(story_type=None):
     print(f"\nStory saved: {filename}")
     if manual_action.get("required"):
         print(f"⚠️  Manual action required: {manual_action['action']}")
+    # Auto-commit and push queue file so Render dashboard can see it
+    try:
+        import subprocess
+        subprocess.run(["git", "add", "queue/", "data/"], cwd=os.path.dirname(os.path.dirname(os.path.abspath(__file__))), check=False)
+        subprocess.run(["git", "commit", "-m", f"Generated post {post_id}"], cwd=os.path.dirname(os.path.dirname(os.path.abspath(__file__))), check=False)
+        subprocess.run(["git", "push"], cwd=os.path.dirname(os.path.dirname(os.path.abspath(__file__))), check=False)
+        print("Queue file pushed to GitHub — visible on Render dashboard")
+    except Exception as e:
+        print(f"Git push skipped: {e}")
     return filename, queue_entry
 
 if __name__ == "__main__":

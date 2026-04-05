@@ -29,17 +29,13 @@ def get_content_type_for_today(strategy):
 
 def parse_claude_json(response_text):
     clean = response_text.strip()
-    if "```" in clean:
-        parts = clean.split("```")
-        clean = parts[1] if len(parts) > 1 else clean
-        if clean.startswith("json"):
-            clean = clean[4:]
-    clean = clean.strip()
+    # Extract JSON object — find outermost { }
     start = clean.find('{')
     end   = clean.rfind('}')
-    if start != -1 and end != -1:
-        clean = clean[start:end+1]
-    clean = re.sub(r'(?<=[\[,])\s*#(\w+)"', r' "#\1"', clean)
+    if start == -1 or end == -1:
+        raise ValueError("No JSON object found in response")
+    clean = clean[start:end+1]
+    # Fix trailing commas
     clean = re.sub(r',\s*([}\]])', r'\1', clean)
     return json.loads(clean)
 
@@ -156,7 +152,8 @@ Return ONLY valid JSON:
   "image_subtext": "secondary text for image (max 8 words)",
   "recommended_day": "{rec_day}",
   "recommended_time_utc": "{rec_hour}"
-}}"""
+}}
+CRITICAL: The caption must NOT contain any backticks, markdown code blocks, or triple backticks. Plain text only."""
 
     message = client.messages.create(
         model="claude-sonnet-4-20250514",

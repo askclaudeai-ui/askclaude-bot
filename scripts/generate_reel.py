@@ -625,6 +625,15 @@ def generate_reel():
         print(f"Preview: open {video_path}")
     else:
         print(f"Frames: open {frames_dir}/")
+    # Auto-commit and push queue file so Render dashboard can see it
+    try:
+        import subprocess
+        subprocess.run(["git", "add", "queue/", "data/"], cwd=os.path.dirname(os.path.dirname(os.path.abspath(__file__))), check=False)
+        subprocess.run(["git", "commit", "-m", f"Generated post {post_id}"], cwd=os.path.dirname(os.path.dirname(os.path.abspath(__file__))), check=False)
+        subprocess.run(["git", "push"], cwd=os.path.dirname(os.path.dirname(os.path.abspath(__file__))), check=False)
+        print("Queue file pushed to GitHub — visible on Render dashboard")
+    except Exception as e:
+        print(f"Git push skipped: {e}")
 
     return filename, queue_entry
 

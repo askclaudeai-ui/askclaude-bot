@@ -595,6 +595,15 @@ Include exactly {n_slides} slides (1 cover + {n_slides-2} content + 1 CTA)."""
         json.dump(queue_entry, f, indent=2)
 
     print(f"\nCarousel saved: {filename}")
+    # Auto-commit and push queue file so Render dashboard can see it
+    try:
+        import subprocess
+        subprocess.run(["git", "add", "queue/", "data/"], cwd=os.path.dirname(os.path.dirname(os.path.abspath(__file__))), check=False)
+        subprocess.run(["git", "commit", "-m", f"Generated post {post_id}"], cwd=os.path.dirname(os.path.dirname(os.path.abspath(__file__))), check=False)
+        subprocess.run(["git", "push"], cwd=os.path.dirname(os.path.dirname(os.path.abspath(__file__))), check=False)
+        print("Queue file pushed to GitHub — visible on Render dashboard")
+    except Exception as e:
+        print(f"Git push skipped: {e}")
     return filename, queue_entry
 
 if __name__ == "__main__":
