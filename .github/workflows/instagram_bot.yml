@@ -351,11 +351,9 @@ if posts:
           git push
 
   # ── Job 8: Keep Render dashboard awake ──────────────────────────────
+  # ── Job 8: Keep Render dashboard awake + catch-all ──────────────────
   keep_alive:
-    if: >
-      github.event_name == 'schedule' &&
-      (github.event.schedule == '0 */14 * * *' ||
-       contains(github.event.schedule, '*/14'))
+    if: github.event_name == 'schedule'
     runs-on: ubuntu-latest
     steps:
       - name: Ping dashboard
