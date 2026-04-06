@@ -255,34 +255,19 @@ def render_reel_frame(scene, post_id, scene_num, total_scenes,
     img = Image.new("RGB", (W, H), VSCODE)
     d   = ImageDraw.Draw(img)
 
-    # Title bar
-    TB_H = 56
-    d.rectangle([0, 0, W, TB_H], fill=(37, 37, 38))
-    for i, col in enumerate([(255,95,87),(254,188,46),(40,200,64)]):
-        cx = 36 + i * 30
-        d.ellipse([cx-10, TB_H//2-10, cx+10, TB_H//2+10], fill=col)
-    fname   = scene.get("filename", "claude_tutorial.py")
-    f_fname = get_mono(26)
-    bbox    = d.textbbox((0, 0), fname, font=f_fname)
-    d.text(((W - (bbox[2]-bbox[0]))//2, 16),
-           fname, font=f_fname, fill=(204, 204, 204))
+    # No title bar or tab bar — full screen code from top
+    TB_H  = 0
+    TAB_Y = 0
+    TAB_H = 0
 
-    # Tab bar
-    TAB_Y, TAB_H = TB_H, 44
-    d.rectangle([0, TAB_Y, W, TAB_Y+TAB_H], fill=(45, 45, 45))
-    d.rectangle([0, TAB_Y, 320, TAB_Y+TAB_H], fill=VSCODE)
-    d.rectangle([0, TAB_Y, 320, TAB_Y+2], fill=ORANGE)
-    f_tab = get_mono(22)
-    d.text((16, TAB_Y+11), fname, font=f_tab, fill=(204, 204, 204))
-    d.text((340, TAB_Y+11), "strategy.json", font=f_tab, fill=(100, 100, 100))
-
-    # Code area — shifted down to avoid Instagram top UI overlay
-    CODE_Y    = TAB_Y + TAB_H + 220   # push down 220px for Instagram username/audio bar
+    # Code area — starts near top with safe zone for Instagram UI
+    CODE_Y    = 320   # safe zone below Instagram username/audio overlay
     GUTTER_W  = 72
     LINE_H    = 48
-    MAX_LINES = 18                     # fewer lines so content stays in safe zone
-    f_code    = get_mono(30)           # slightly larger for readability
+    MAX_LINES = 18
+    f_code    = get_mono(30)
     f_ln      = get_mono(22)
+
 
     # Limit visible area to avoid overlapping callout box
     
