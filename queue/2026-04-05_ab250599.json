@@ -5,7 +5,7 @@
   "created_at": "2026-04-05T15:31:20.910205",
   "published_at": "2026-04-05T22:57:30.915762",
   "instagram_media_id": "69d2e8d1f1a2f9eca98d8318",
-  "imgbb_url": "https://res.cloudinary.com/djpivam1q/image/upload/v1775399708/askclaude_feed/ab250599_1775399707.png",
+  "imgbb_url": "https://res.cloudinary.com/djpivam1q/image/upload/v1775574098/askclaude_feed/ab250599_1775574098.png",
   "generation_inputs": {
     "strategy_snapshot": {
       "model_phase": "bootstrap",
@@ -159,5 +159,5 @@
     "prediction_confidence": null,
     "model_phase_at_prediction": "bootstrap"
   },
-  "cloudinary_image_url": "https://res.cloudinary.com/djpivam1q/image/upload/v1775399708/askclaude_feed/ab250599_1775399707.png"
+  "cloudinary_image_url": "https://res.cloudinary.com/djpivam1q/image/upload/v1775574098/askclaude_feed/ab250599_1775574098.png"
 }
