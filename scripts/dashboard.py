@@ -994,23 +994,6 @@ def reject(post_id):
         try: os.remove(path)
         except: pass
 
-    # Trigger regeneration
-    if github_token and github_repo:
-        try:
-            requests.post(
-                f"https://api.github.com/repos/{github_repo}/dispatches",
-                headers=headers,
-                json={
-                    "event_type": "regenerate_content",
-                    "client_payload": {
-                        "content_type": content_type,
-                        "story_type":   story_type
-                    }
-                }
-            )
-        except Exception as e:
-            print(f"Could not trigger regeneration: {e}")
-
     return redirect(url_for("index", filter="pending"))
 
 @app.route("/edit", methods=["POST"])
