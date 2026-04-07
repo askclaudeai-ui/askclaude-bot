@@ -1,0 +1,163 @@
+{
+  "id": "b6e3dfeb",
+  "content_type": "static",
+  "status": "pending",
+  "created_at": "2026-04-07T15:31:45.448306",
+  "published_at": null,
+  "instagram_media_id": null,
+  "imgbb_url": "https://res.cloudinary.com/djpivam1q/image/upload/v1775575906/askclaude_feed/b6e3dfeb_1775575905.png",
+  "generation_inputs": {
+    "strategy_snapshot": {
+      "model_phase": "bootstrap",
+      "timing": {
+        "preferred_days": [
+          {
+            "day": "thursday",
+            "score": 0.8,
+            "best_for": "reel"
+          }
+        ],
+        "preferred_hours_utc": [
+          13,
+          9,
+          18
+        ],
+        "weekly_cadence": {
+          "monday": "static",
+          "wednesday": "carousel",
+          "thursday": "reel"
+        }
+      },
+      "content_format": {
+        "format_weights": {
+          "reel": 0.5,
+          "carousel": 0.32,
+          "static": 0.18
+        },
+        "reel_optimal_duration_s": 22,
+        "carousel_optimal_slides": 6
+      }
+    },
+    "trend_report": {
+      "trending_topics": [
+        "AI-powered content creation and automation tools",
+        "Claude and LLM integration tutorials",
+        "Educational programming content and quick tips",
+        "Developer productivity hacks and workflows",
+        "Tech industry insights and behind-the-scenes content"
+      ],
+      "hashtags": {
+        "primary": [
+          "#ai",
+          "#programming",
+          "#developer"
+        ],
+        "niche": [
+          "#claude",
+          "#llm",
+          "#machinelearning",
+          "#artificialintelligence",
+          "#chatgpt",
+          "#aitools",
+          "#openai",
+          "#coding",
+          "#softwareengineering",
+          "#techcommunity"
+        ],
+        "evergreen": [
+          "#tech",
+          "#innovation",
+          "#tutorial",
+          "#productivity",
+          "#learntocode"
+        ]
+      },
+      "best_posting_times": [
+        {
+          "day": "tuesday",
+          "time_utc": "14:00",
+          "reason": "Peak developer activity during lunch break and afternoon work hours"
+        },
+        {
+          "day": "wednesday",
+          "time_utc": "13:00",
+          "reason": "Mid-week engagement peak when developers are most active"
+        },
+        {
+          "day": "thursday",
+          "time_utc": "20:00",
+          "reason": "Evening peak when developers unwind and consume educational content"
+        },
+        {
+          "day": "monday",
+          "time_utc": "10:00",
+          "reason": "Monday morning engagement as developers catch up on latest trends"
+        }
+      ],
+      "trending_audio": [
+        "Cha Cha Cha - Bruno Mars",
+        "360 orchestral cover",
+        "DAISIES - Justin Bieber",
+        "Original audio tracks for tutorials"
+      ],
+      "top_hook_styles": [
+        "Did you know that... (curiosity gap opener)",
+        "Stop scrolling if this sounds like you... (direct address)",
+        "3 mistakes everyone makes when... (numbered list format)",
+        "POV: You just discovered... (point of view format)",
+        "Everything you knew about [topic] is WRONG (contrarian hook)"
+      ],
+      "viral_formats": [
+        "Educational carousel posts with step-by-step tutorials",
+        "Short-form Reels with quick tips and code snippets",
+        "Behind-the-scenes developer workflow content",
+        "Problem-solution format Reels"
+      ],
+      "research_date": "2026-03-29"
+    },
+    "topic_cluster": "Implementing automatic caching with single cache_control field",
+    "hook_style_used": "how_to"
+  },
+  "post": {
+    "topic": "setting up automatic prompt caching with cache_control",
+    "hook": "How to slash your Claude API costs with one simple cache_control parameter",
+    "caption": "Stop paying full price for repeated Claude API calls! The new cache_control parameter automatically caches your prompts and reduces costs by up to 90% on subsequent requests.\n\nJust add cache_control: ephemeral to any message content in your API call. Claude will cache that content for 5 minutes and reuse it across requests in the same conversation.\n\nPerfect for:\n\u2022 Long system prompts\n\u2022 Document analysis workflows\n\u2022 Repeated context in conversations\n\u2022 Multi-turn chat applications\n\nThe cache works automatically - no manual cache management needed. Your first request pays full price, but follow-ups with the same cached content cost significantly less.\n\n\ud83d\udcbe Save this for your next API integration!",
+    "hashtags": [
+      "#claudeai",
+      "#anthropic",
+      "#aidev",
+      "#llm",
+      "#pythondev",
+      "#apidevelopment",
+      "#aiintegration",
+      "#machinelearning",
+      "#codinglife",
+      "#devtips",
+      "#programming",
+      "#artificialintelligence",
+      "#developer",
+      "#techstack",
+      "#buildwithclaude",
+      "#promptengineering",
+      "#automation",
+      "#aitools"
+    ],
+    "audio_suggestion": "original audio",
+    "image_text": "Cut Claude API costs with cache_control",
+    "image_subtext": "90% savings on repeated prompts"
+  },
+  "scheduling": {
+    "recommended_day": "thursday",
+    "recommended_time_utc": "13:00",
+    "actual_publish_day": null,
+    "actual_publish_time_utc": null,
+    "timing_deviation_hours": null
+  },
+  "model_prediction": {
+    "predicted_engagement_rate": null,
+    "predicted_reach": null,
+    "prediction_confidence": null,
+    "model_phase_at_prediction": "bootstrap"
+  },
+  "cloudinary_image_url": "https://res.cloudinary.com/djpivam1q/image/upload/v1775575906/askclaude_feed/b6e3dfeb_1775575905.png"
+}
