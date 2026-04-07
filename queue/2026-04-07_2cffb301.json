@@ -1,10 +1,10 @@
 {
   "id": "2cffb301",
   "content_type": "reel",
-  "status": "approved",
+  "status": "published",
   "created_at": "2026-04-07T14:23:26.681848",
-  "published_at": null,
-  "instagram_media_id": null,
+  "published_at": "2026-04-07T14:16:12.188755",
+  "instagram_media_id": "69d51190ae7d67b421736d05",
   "imgbb_url": "https://res.cloudinary.com/djpivam1q/image/upload/v1775568210/askclaude_feed/frame_00_cover_1775568209.png",
   "cloudinary_video_url": "https://res.cloudinary.com/djpivam1q/video/upload/v1775568208/askclaude_reels/reel.mp4",
   "generation_inputs": {
@@ -245,9 +245,9 @@
   "scheduling": {
     "recommended_day": "thursday",
     "recommended_time_utc": "13:00",
-    "actual_publish_day": null,
-    "actual_publish_time_utc": null,
-    "timing_deviation_hours": null
+    "actual_publish_day": "tuesday",
+    "actual_publish_time_utc": "14:16",
+    "timing_deviation_hours": 1
   },
   "model_prediction": {
     "predicted_engagement_rate": null,
