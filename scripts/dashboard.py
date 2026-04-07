@@ -486,11 +486,11 @@ HTML = """
                         {% endif %}
                         <button class="btn btn-edit" onclick="openEdit(
                             '{{ post.id }}',
-                            {{ post.post.hook | tojson }},
-                            {{ post.post.caption | tojson }},
-                            {{ post.post.hashtags | join(' ') | tojson }},
-                            {{ post.scheduling.recommended_day | tojson }},
-                            {{ post.scheduling.recommended_time_utc | tojson }}
+                            {{ (post.post.hook or '') | tojson }},
+                            {{ (post.post.caption or '') | tojson }},
+                            {{ (post.post.hashtags | join(' ')) | tojson }},
+                            {{ (post.scheduling.recommended_day or '') | tojson }},
+                            {{ (post.scheduling.recommended_time_utc or '') | tojson }}
                         )">Edit post</button>
                         <button class="btn btn-feedback" onclick="openFeedback('{{ post.id }}')">Give feedback</button>
                     </div>
@@ -709,6 +709,16 @@ def load_posts(filter_status=None):
             post["manual_action"]          = post.get("manual_action", {})
             post["story_type"]             = post.get("story_type", "")
 
+            # Ensure required fields exist for all post types
+            if "post" not in post:
+                post["post"] = {}
+            post["post"].setdefault("hook", "")
+            post["post"].setdefault("caption", "")
+            post["post"].setdefault("hashtags", [])
+            if "scheduling" not in post:
+                post["scheduling"] = {}
+            post["scheduling"].setdefault("recommended_day", "")
+            post["scheduling"].setdefault("recommended_time_utc", "")
             if filter_status and filter_status != "all":
                 if post.get("status") == filter_status:
                     posts.append(post)

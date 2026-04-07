@@ -453,12 +453,40 @@ def generate_carousel():
     if trends:
         trend_ctx = f"Trending: {', '.join(trends.get('trending_topics',[])[:3])}"
 
+    # Anthropic news for fresh topic ideas
+    news_files = sorted([f for f in os.listdir("data") if f.startswith("anthropic_news_")])
+    news_ctx = ""
+    if news_files:
+        try:
+            news = json.load(open(f"data/{news_files[-1]}"))
+            headlines = news.get("headlines", [])[:3]
+            if headlines:
+                news_ctx = f"Latest Anthropic news: {', '.join(headlines)}"
+        except: pass
+
+    # Recent topics cooldown
+    recent_topics = []
+    queue_files = sorted([f for f in os.listdir("queue") if f.endswith(".json")], reverse=True)[:10]
+    for qf in queue_files:
+        try:
+            q = json.load(open(f"queue/{qf}"))
+            t = q.get("post", {}).get("topic", "")
+            c = q.get("generation_inputs", {}).get("topic_cluster", "")
+            if t: recent_topics.append(t.lower())
+            if c: recent_topics.append(c.lower())
+        except: continue
+    avoid_str = "RECENTLY USED TOPICS (do NOT repeat):\n" + "\n".join(f"- {t}" for t in recent_topics[:6]) if recent_topics else ""
     prompt = f"""You are a social media content creator for @ask.claudeai — Claude API tips for developers.
 
 STRATEGY:
 {strategy_summary}
 
 Create a {n_slides}-slide Instagram carousel about Claude API.
+
+{avoid_str}
+
+LATEST NEWS CONTEXT:
+{news_ctx}
 
 TOPIC POOL: {', '.join(topics[:5])}
 TREND CONTEXT: {trend_ctx}

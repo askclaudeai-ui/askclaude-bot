@@ -22,6 +22,13 @@ def load_latest_trends():
     with open(f"data/{latest}", "r") as f:
         return json.load(f)
 
+def load_anthropic_news():
+    news_files = sorted([f for f in os.listdir("data") if f.startswith("anthropic_news_")])
+    if not news_files:
+        return {}
+    with open(f"data/{news_files[-1]}") as f:
+        return json.load(f)
+
 def get_content_type_for_today(strategy):
     day = datetime.now().strftime("%A").lower()
     cadence = strategy["timing"]["weekly_cadence"]
@@ -111,6 +118,12 @@ def generate_content(content_type=None):
             f"Top hook styles: {', '.join(trends.get('top_hook_styles',[])[:2])}\n"
             f"Trending audio: {trends.get('trending_audio',['original audio'])[0]}"
         )
+    news = load_anthropic_news()
+    news_ctx = ""
+    if news:
+        headlines = news.get("headlines", [])[:3]
+        if headlines:
+            news_ctx = f"Latest Anthropic news: {', '.join(headlines)}"
 
     prompt = f"""You are a social media content creator for @ask.claudeai — an Instagram page posting Claude API tips for developers.
 
@@ -126,6 +139,7 @@ STRATEGY:
 
 TREND CONTEXT:
 {trend_context}
+{news_ctx}
 
 RECENTLY USED TOPICS (do NOT repeat these):
 {avoid_topics_str}

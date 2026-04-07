@@ -439,18 +439,21 @@ def render_weekly_roundup(data, slide_num=1, total_slides=2):
 # Content generation
 # ═══════════════════════════════════════════════════════════════════════
 
-def generate_story_content(client, story_type, parent_post=None):
+def generate_story_content(client, story_type, parent_post=None, recent_topics=None):
     parent_ctx = ""
     if parent_post:
         parent_ctx = f"""
 Parent feed post:
 - Topic: {parent_post.get('post',{}).get('topic','')}
 - Hook: {parent_post.get('post',{}).get('hook','')}
-- Caption preview: {parent_post.get('post',{}).get('caption','')[:200]}
 """
+    avoid_str = ""
+    if recent_topics:
+        avoid_str = "RECENTLY USED TOPICS (do NOT repeat):\n" + "\n".join(f"- {t}" for t in recent_topics[:6])
     prompts = {
         "tip_repurpose": f"""You are creating a tip repurpose Instagram Story for @ask.claudeai.
 {parent_ctx}
+{avoid_str}
 Extract the single most valuable standalone insight. Make it punchy and worth saving.
 Return ONLY valid JSON:
 {{
@@ -461,6 +464,7 @@ Return ONLY valid JSON:
 
         "poll": f"""You are creating a poll Instagram Story for @ask.claudeai.
 {parent_ctx}
+{avoid_str}
 Create an engaging either/or poll for developers. No obvious right answer.
 Return ONLY valid JSON:
 {{
@@ -471,6 +475,7 @@ Return ONLY valid JSON:
 
         "quiz": f"""You are creating a developer quiz Instagram Story for @ask.claudeai.
 {parent_ctx}
+{avoid_str}
 Create a genuinely educational Claude API quiz with 4 options. One correct answer.
 Return ONLY valid JSON:
 {{
@@ -512,6 +517,7 @@ Return ONLY valid JSON:
 
         "reel_teaser": f"""You are creating a Reel teaser Instagram Story for @ask.claudeai.
 {parent_ctx}
+{avoid_str}
 Tease today's Reel to drive views.
 Return ONLY valid JSON:
 {{
@@ -629,7 +635,22 @@ def generate_story(story_type=None):
     if parent_post:
         print(f"Parent post: {parent_post.get('post',{}).get('topic','')}")
 
-    data = generate_story_content(client, story_type, parent_post)
+    # Get recent story topics to avoid repetition
+    recent_story_topics = []
+    try:
+        all_queue = list(os.listdir("queue"))
+        for f in sorted(all_queue, reverse=True)[:20]:
+            if not f.endswith(".json"): continue
+            try:
+                d = json.load(open(f"queue/{f}"))
+                if d.get("content_type") == "story":
+                    t = d.get("post", {}).get("story_data", {})
+                    tip = t.get("tip_text", "") or t.get("question", "") or t.get("topic", "")
+                    if tip: recent_story_topics.append(tip.lower())
+            except: continue
+    except: pass
+
+    data = generate_story_content(client, story_type, parent_post, recent_story_topics)
     print("Content generated")
 
     post_id   = str(uuid.uuid4())[:8]
