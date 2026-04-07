@@ -1,0 +1,39 @@
+{
+  "id": "1fc1cb3d",
+  "content_type": "story",
+  "story_type": "tip_repurpose",
+  "status": "pending",
+  "created_at": "2026-04-07T15:31:27.009456",
+  "published_at": null,
+  "instagram_media_id": null,
+  "imgbb_url": "https://res.cloudinary.com/djpivam1q/image/upload/v1775575888/askclaude_stories/story_01.png",
+  "cloudinary_story_urls": [
+    "https://res.cloudinary.com/djpivam1q/image/upload/v1775575888/askclaude_stories/story_01.png"
+  ],
+  "parent_post_id": "2cffb301",
+  "manual_action": {
+    "required": false,
+    "action": null,
+    "steps": []
+  },
+  "generation_inputs": {
+    "story_type": "tip_repurpose",
+    "parent_topic": "Streaming Claude responses in real-time"
+  },
+  "post": {
+    "caption": "Stop bad Claude responses before they waste your time \u23f1\ufe0f\n\nStreaming lets you interrupt mid-generation when you spot the response going off-track. No more waiting for terrible outputs to finish!\n\n#ClaudeTips #AIProductivity #StreamingAI",
+    "image_paths": [
+      "queue/stories/1fc1cb3d/story_01.png"
+    ],
+    "slide_count": 1,
+    "story_data": {
+      "tip_text": "Stream Claude responses to interrupt bad outputs mid-generation",
+      "subtext": "Stop wasted time by canceling obviously wrong responses before they finish generating",
+      "caption": "Stop bad Claude responses before they waste your time \u23f1\ufe0f\n\nStreaming lets you interrupt mid-generation when you spot the response going off-track. No more waiting for terrible outputs to finish!\n\n#ClaudeTips #AIProductivity #StreamingAI"
+    }
+  },
+  "scheduling": {
+    "recommended_time_utc": 18,
+    "actual_publish_time": null
+  }
+}
