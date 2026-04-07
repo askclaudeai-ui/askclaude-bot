@@ -82,6 +82,7 @@ jobs:
           git config user.email "askclaudeai@gmail.com"
           git add queue/ data/
           git diff --staged --quiet || git commit -m "Generated content $(date +%Y-%m-%d)"
+          git pull --rebase || true
           git push
 
   # ── Job 2: Publish feed post (6pm Mon/Wed/Thu) ─────────────────────
@@ -118,6 +119,7 @@ jobs:
           git config user.email "askclaudeai@gmail.com"
           git add queue/
           git diff --staged --quiet || git commit -m "Published post $(date +%Y-%m-%d)"
+          git pull --rebase || true
           git push
 
   # ── Job 3: Generate story (10:30pm Mon/Wed/Thu) ─────────────────────
@@ -162,6 +164,7 @@ jobs:
           git config user.email "askclaudeai@gmail.com"
           git add queue/stories/ data/
           git diff --staged --quiet || git commit -m "Generated story $(date +%Y-%m-%d)"
+          git pull --rebase || true
           git push
 
   # ── Job 4: Fetch story insights (10am daily) ────────────────────────
@@ -195,6 +198,7 @@ jobs:
           git config user.email "askclaudeai@gmail.com"
           git add data/
           git diff --staged --quiet || git commit -m "Story insights $(date +%Y-%m-%d)"
+          git pull --rebase || true
           git push
 
   # ── Job 5: Weekly optimise (Sunday 8am) ─────────────────────────────
@@ -242,6 +246,7 @@ jobs:
           git config user.email "askclaudeai@gmail.com"
           git add data/
           git diff --staged --quiet || git commit -m "Weekly optimisation $(date +%Y-%m-%d)"
+          git pull --rebase || true
           git push
 
   # ── Job 6: Publish on approval (triggered by dashboard) ─────────────
@@ -281,6 +286,7 @@ jobs:
           git config user.email "askclaudeai@gmail.com"
           git add queue/
           git diff --staged --quiet || git commit -m "Published post $(date +%Y-%m-%d)"
+          git pull --rebase || true
           git push
 
   # ── Job 7: Regenerate rejected content ──────────────────────────────
@@ -330,6 +336,7 @@ jobs:
           git config user.email "askclaudeai@gmail.com"
           git add queue/ data/
           git diff --staged --quiet || git commit -m "Regenerated content $(date +%Y-%m-%d)"
+          git pull --rebase || true
           git push
 
   # ── Job 8: Keep Render dashboard awake ──────────────────────────────
