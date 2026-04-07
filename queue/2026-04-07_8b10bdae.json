@@ -2,10 +2,10 @@
   "id": "8b10bdae",
   "content_type": "story",
   "story_type": "poll",
-  "status": "approved",
+  "status": "published",
   "created_at": "2026-04-07T17:55:25.601783",
-  "published_at": null,
-  "instagram_media_id": null,
+  "published_at": "2026-04-07T16:58:00.240892",
+  "instagram_media_id": "manual_poll_8b10bdae",
   "imgbb_url": "https://res.cloudinary.com/djpivam1q/image/upload/v1775580926/askclaude_stories/story_01.png",
   "cloudinary_story_urls": [
     "https://res.cloudinary.com/djpivam1q/image/upload/v1775580926/askclaude_stories/story_01.png"
@@ -43,6 +43,8 @@
   },
   "scheduling": {
     "recommended_time_utc": 18,
-    "actual_publish_time": null
+    "actual_publish_time": null,
+    "actual_publish_day": "tuesday",
+    "actual_publish_time_utc": "16:58"
   }
 }
