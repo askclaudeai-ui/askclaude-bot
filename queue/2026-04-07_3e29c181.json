@@ -1,0 +1,53 @@
+{
+  "id": "3e29c181",
+  "content_type": "story",
+  "story_type": "behind_scenes",
+  "status": "pending",
+  "created_at": "2026-04-07T15:45:08.246610",
+  "published_at": null,
+  "instagram_media_id": null,
+  "imgbb_url": "https://res.cloudinary.com/djpivam1q/image/upload/v1775576708/askclaude_stories/story_01.png",
+  "cloudinary_story_urls": [
+    "https://res.cloudinary.com/djpivam1q/image/upload/v1775576708/askclaude_stories/story_01.png"
+  ],
+  "parent_post_id": "2cffb301",
+  "manual_action": {
+    "required": false,
+    "action": null,
+    "steps": []
+  },
+  "generation_inputs": {
+    "story_type": "behind_scenes",
+    "parent_topic": "Streaming Claude responses in real-time"
+  },
+  "post": {
+    "caption": "Behind the scenes: Claude creates content in real-time, just like how it streams responses! This post was generated with prompts about streaming features \ud83e\udd16\u2728",
+    "image_paths": [
+      "queue/stories/3e29c181/story_01.png"
+    ],
+    "slide_count": 1,
+    "story_data": {
+      "prompt_preview": [
+        "# Prompt sent to Claude:",
+        "",
+        "You are a content creator",
+        "for @ask.claudeai...",
+        "",
+        "Topic: Streaming Claude responses in real-time",
+        "",
+        "# Claude response:",
+        "Hook: generated \u2713",
+        "Caption: written \u2713",
+        "Hashtags: done \u2713",
+        "Image: created \u2713",
+        "",
+        "\u2192 Saved to review queue"
+      ],
+      "caption": "Behind the scenes: Claude creates content in real-time, just like how it streams responses! This post was generated with prompts about streaming features \ud83e\udd16\u2728"
+    }
+  },
+  "scheduling": {
+    "recommended_time_utc": 18,
+    "actual_publish_time": null
+  }
+}
