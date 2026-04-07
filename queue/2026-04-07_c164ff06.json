@@ -1,0 +1,58 @@
+{
+  "id": "c164ff06",
+  "content_type": "story",
+  "story_type": "weekly_roundup",
+  "status": "pending",
+  "created_at": "2026-04-07T15:51:01.651280",
+  "published_at": null,
+  "instagram_media_id": null,
+  "imgbb_url": "https://res.cloudinary.com/djpivam1q/image/upload/v1775577062/askclaude_stories/story_01.png",
+  "cloudinary_story_urls": [
+    "https://res.cloudinary.com/djpivam1q/image/upload/v1775577062/askclaude_stories/story_01.png",
+    "https://res.cloudinary.com/djpivam1q/image/upload/v1775577063/askclaude_stories/story_02.png"
+  ],
+  "parent_post_id": "2cffb301",
+  "manual_action": {
+    "required": false,
+    "action": null,
+    "steps": []
+  },
+  "generation_inputs": {
+    "story_type": "weekly_roundup",
+    "parent_topic": "Streaming Claude responses in real-time"
+  },
+  "post": {
+    "caption": "This week we covered creative writing, data analysis, and coding help! \ud83d\udca1\nWhat should we explore next? Drop your suggestions below! \ud83d\udc47",
+    "image_paths": [
+      "queue/stories/c164ff06/story_01.png",
+      "queue/stories/c164ff06/story_02.png"
+    ],
+    "slide_count": 2,
+    "story_data": {
+      "slide1": {
+        "posts_summary": [
+          {
+            "day": "Mon",
+            "title": "Creative Writing Prompts for Storytellers"
+          },
+          {
+            "day": "Wed",
+            "title": "Data Analysis Tips and Tricks"
+          },
+          {
+            "day": "Thu",
+            "title": "Python Code Debugging Made Simple"
+          }
+        ]
+      },
+      "slide2": {
+        "teaser": "Next week: Advanced AI productivity hacks"
+      },
+      "caption": "This week we covered creative writing, data analysis, and coding help! \ud83d\udca1\nWhat should we explore next? Drop your suggestions below! \ud83d\udc47"
+    }
+  },
+  "scheduling": {
+    "recommended_time_utc": 18,
+    "actual_publish_time": null
+  }
+}
