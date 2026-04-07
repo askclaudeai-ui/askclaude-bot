@@ -137,8 +137,8 @@ def render_code_line(d, x, y, line, font, highlight=False, line_h=44):
         cx += bbox[2] - bbox[0]
 
 def render_cover_frame(hook, topic, W=1080, H=1920):
-    """Branded cover frame in cream+indigo palette shown before reel plays."""
-    BG     = (255, 243, 208)
+    """Branded cover frame in cream+indigo palette — first frame = Instagram thumbnail."""
+    BG_C   = (255, 243, 208)
     BG2    = (255, 232, 150)
     INDIGO = (55,  48,  163)
     GOLD   = (217, 119,   6)
@@ -146,19 +146,16 @@ def render_cover_frame(hook, topic, W=1080, H=1920):
     MID    = (61,  56,  120)
     GRID   = (210, 180,  80)
 
-    img = Image.new("RGB", (W, H), BG)
+    img = Image.new("RGB", (W, H), BG_C)
     d   = ImageDraw.Draw(img)
 
-    # Grid
     for x in range(0, W, W//4): d.line([(x,0),(x,H)], fill=GRID, width=1)
     for y in range(0, H, H//6): d.line([(0,y),(W,y)], fill=GRID, width=1)
 
-    # Top and bottom bars
-    d.rectangle([0, 0,   W, 12], fill=INDIGO)
-    d.rectangle([0, H-12, W, H], fill=GOLD)
-    d.rectangle([0, 0, 12, H],   fill=INDIGO)
+    d.rectangle([0, 0,    W, 12], fill=INDIGO)
+    d.rectangle([0, H-12, W, H],  fill=GOLD)
+    d.rectangle([0, 0,   12, H],  fill=INDIGO)
 
-    # Logo bubble — centred upper third
     def draw_logo(cx, y, size=220):
         bw  = size
         bh  = int(size * 0.65)
@@ -185,18 +182,13 @@ def render_cover_frame(hook, topic, W=1080, H=1920):
 
     draw_logo(W//2, 280)
 
-    # "ASK CLAUDE" label
-    f_label = get_font(36, True)
-    d.text((W//2, 660), "ASK CLAUDE", font=f_label, fill=INDIGO, anchor="mm")
+    d.text((W//2, 660), "ASK CLAUDE", font=get_font(36, True), fill=INDIGO, anchor="mm")
 
-    # Reel label pill
-    f_pill = get_font(28, True)
     pill_w = 200
     d.rounded_rectangle([(W-pill_w)//2, 710, (W+pill_w)//2, 766],
                          radius=28, fill=INDIGO)
-    d.text((W//2, 738), "NEW REEL", font=f_pill, fill=BG, anchor="mm")
+    d.text((W//2, 738), "NEW REEL", font=get_font(28, True), fill=BG_C, anchor="mm")
 
-    # Hook text — large, centred
     f_hook = get_font(80, True)
     words  = hook.split()
     lines, current = [], []
@@ -218,8 +210,7 @@ def render_cover_frame(hook, topic, W=1080, H=1920):
         d.text(((W-tw)//2, y_hook), line, font=f_hook, fill=col)
         y_hook += 96
 
-    # Topic subtext
-    f_sub = get_font(44)
+    f_sub  = get_font(44)
     words2 = topic.split()
     lines2, cur2 = [], []
     for word in words2:
@@ -238,14 +229,9 @@ def render_cover_frame(hook, topic, W=1080, H=1920):
         d.text(((W-tw)//2, y_sub), line, font=f_sub, fill=MID)
         y_sub += 56
 
-    # Watch prompt
-    f_watch = get_font(40, True)
-    d.text((W//2, 1600), "Watch to learn →", font=f_watch, fill=GOLD, anchor="mm")
-
-    # Handle
-    f_handle = get_mono(32)
-    d.text((W//2, 1720), "@ask.claudeai", font=f_handle, fill=MID, anchor="mm")
-    d.text((W//2, 1780), "New reel every Thu", font=get_mono(28), fill=GRID, anchor="mm")
+    d.text((W//2, 1600), "Watch to learn →", font=get_font(40, True), fill=GOLD, anchor="mm")
+    d.text((W//2, 1720), "@ask.claudeai",    font=get_mono(32),        fill=MID,  anchor="mm")
+    d.text((W//2, 1780), "New reel every Thu",font=get_mono(28),       fill=GRID, anchor="mm")
 
     return img
 
@@ -255,25 +241,34 @@ def render_reel_frame(scene, post_id, scene_num, total_scenes,
     img = Image.new("RGB", (W, H), VSCODE)
     d   = ImageDraw.Draw(img)
 
-    # No title bar or tab bar — full screen code from top
-    TB_H  = 0
-    TAB_Y = 0
-    TAB_H = 0
-
-    # Code area — starts near top with safe zone for Instagram UI
-    CODE_Y    = 320   # safe zone below Instagram username/audio overlay
-    GUTTER_W  = 72
-    LINE_H    = 48
+    CODE_Y   = 320
+    GUTTER_W = 72
+    LINE_H   = 48
     MAX_LINES = 18
-    f_code    = get_mono(30)
-    f_ln      = get_mono(22)
+    f_code   = get_mono(30)
+    f_ln     = get_mono(22)
 
-
-    # Limit visible area to avoid overlapping callout box
-    
     code_to_show = full_code[:visible_lines]
     highlight_ln = scene.get("highlight_line", visible_lines)
 
+    # Callout box — calculate position first so MAX_LINES can be clamped
+    text_overlay = scene.get("text_overlay", "")
+    tip_label    = scene.get("tip_label", f"Step {scene_num} of {total_scenes}")
+    OV_PAD       = 24
+    f_lbl        = get_font(24, True)
+    f_ov         = get_font(46, True)
+    ov_lines     = wrap_text(text_overlay, f_ov, W - OV_PAD*2, d)
+    line_h_ov    = 58
+    OV_H         = OV_PAD + 30 + 8 + len(ov_lines)*line_h_ov + OV_PAD
+    HANDLE_H     = 52
+    INSTAGRAM_BOTTOM_UI = 320
+    OV_Y         = H - HANDLE_H - OV_H - INSTAGRAM_BOTTOM_UI
+
+    # Clamp MAX_LINES so code doesn't overlap callout
+    available_h = OV_Y - CODE_Y - 20
+    MAX_LINES   = max(4, min(MAX_LINES, available_h // LINE_H))
+
+    # Gutter
     d.rectangle([0, CODE_Y, GUTTER_W, H], fill=(28, 28, 28))
     d.line([(GUTTER_W, CODE_Y), (GUTTER_W, H)], fill=(55, 55, 55), width=1)
 
@@ -296,28 +291,10 @@ def render_reel_frame(scene, post_id, scene_num, total_scenes,
         d.rectangle([cur_x+2, cur_y+8, cur_x+14, cur_y+LINE_H-8],
                     fill=(204, 204, 204))
 
-    # Callout box
-    text_overlay = scene.get("text_overlay", "")
-    tip_label    = scene.get("tip_label", f"Step {scene_num} of {total_scenes}")
-
-    OV_PAD    = 24
-    f_lbl     = get_font(24, True)
-    f_ov      = get_font(46, True)
-    ov_lines  = wrap_text(text_overlay, f_ov, W - OV_PAD*2, d)
-    line_h_ov = 58
-    OV_H      = OV_PAD + 30 + 8 + len(ov_lines)*line_h_ov + OV_PAD
-
-    HANDLE_H = 52
-    INSTAGRAM_BOTTOM_UI = 320   # space for Instagram like/comment/share buttons
-    OV_Y     = H - HANDLE_H - OV_H - INSTAGRAM_BOTTOM_UI
-    # Recalculate MAX_LINES to avoid overlapping callout box
-    available_h = OV_Y - CODE_Y - 20
-    MAX_LINES   = max(4, min(MAX_LINES, available_h // LINE_H))
-
+    # Draw callout box
     d.rectangle([0, OV_Y, W, OV_Y+OV_H], fill=(13, 17, 23))
     d.line([(0, OV_Y), (W, OV_Y)], fill=ORANGE, width=3)
     d.text((OV_PAD, OV_Y+OV_PAD), tip_label, font=f_lbl, fill=ORANGE)
-
     y_ov = OV_Y + OV_PAD + 30 + 8
     for line in ov_lines:
         d.text((OV_PAD, y_ov), line, font=f_ov, fill=WHITE)
@@ -327,18 +304,24 @@ def render_reel_frame(scene, post_id, scene_num, total_scenes,
     BOT_Y = H - HANDLE_H - INSTAGRAM_BOTTOM_UI
     d.rectangle([0, BOT_Y, W, H], fill=(13, 17, 23))
     d.line([(0, BOT_Y), (W, BOT_Y)], fill=(30, 30, 30), width=1)
-    f_handle = get_mono(22)
     d.text((W//2, BOT_Y + HANDLE_H//2),
            "Ask Claude  ·  @ask.claudeai  ·  Mon · Wed · Thu",
-           font=f_handle, fill=(80, 80, 80), anchor="mm")
+           font=get_mono(22), fill=(80, 80, 80), anchor="mm")
 
     return img
 
-def generate_voiceover_script(client, trends):
+def generate_voiceover_script(client, trends, recent_topics=None):
     strategy_summary = get_strategy_summary()
     trend_ctx = ""
     if trends:
         trend_ctx = f"Trending: {', '.join(trends.get('trending_topics',[])[:3])}"
+
+    avoid_str = ""
+    if recent_topics:
+        avoid_str = f"""
+RECENTLY USED TOPICS (do NOT repeat these):
+{chr(10).join(f'- {t}' for t in recent_topics[:6])}
+
 
     prompt = f"""You are writing a calm, educational voiceover for a 28-32 second Instagram Reel for @ask.claudeai.
 The reel teaches ONE Claude API technique as a live coding tutorial.
@@ -368,12 +351,24 @@ CODE RULES:
 - 4-space indentation
 - Keep strings under 20 chars
 
-Choose ONE topic:
-- Streaming Claude responses
+{avoid_str}
+
+Choose ONE topic from this list — pick whichever is most interesting and NOT in the recently used list above:
+- Streaming Claude responses in real time
 - Using system prompts for consistent behaviour
 - Multi-turn conversation with message history
 - Counting tokens before sending a request
 - Handling errors and retries gracefully
+- Extracting structured JSON from Claude responses
+- Using tool use / function calling with Claude
+- Prompt caching to reduce API costs
+- Building a simple chatbot with Claude
+- Vision: sending images to Claude
+- Batch processing multiple requests efficiently
+- Setting max tokens and understanding stop reasons
+- Using temperature and top_p for creativity control
+- Building an AI agent with Claude
+- Generating embeddings and semantic search
 
 Return ONLY valid JSON:
 {{
@@ -521,10 +516,9 @@ def assemble_reel(frame_paths, segment_durations, combined_audio_path, output_pa
 
         video      = concatenate_videoclips(clips, method="compose")
         audio_clip = AudioFileClip(combined_audio_path)
-        # Trim trailing noise — cut last 0.3 seconds
         if audio_clip.duration > 0.5:
             audio_clip = audio_clip.subclip(0, audio_clip.duration - 0.3)
-        video      = video.set_audio(audio_clip)
+        video = video.set_audio(audio_clip)
 
         os.makedirs(os.path.dirname(output_path), exist_ok=True)
         video.write_videofile(
@@ -555,7 +549,19 @@ def generate_reel():
     rec_hour  = f"{strategy['timing']['preferred_hours_utc'][0]:02d}:00"
 
     print("Generating reel script...")
-    data      = generate_voiceover_script(client, trends)
+    # Get recent reel topics to avoid repetition
+    recent_reel_topics = []
+    try:
+        for f in sorted(os.listdir("queue"), reverse=True)[:20]:
+            if not f.endswith(".json"): continue
+            d = json.load(open(f"queue/{f}"))
+            if d.get("content_type") == "reel":
+                t = d.get("post", {}).get("topic", "")
+                if t: recent_reel_topics.append(t.lower())
+    except:
+        pass
+
+    data = generate_voiceover_script(client, trends, recent_reel_topics)
     scenes    = data.get("scenes", [])
     full_code = data.get("full_code", ["import anthropic"])
 
@@ -601,14 +607,21 @@ def generate_reel():
             audio_ok = False
 
     # Render frames
-    frames_dir  = f"queue/images/{post_id}"
+    frames_dir = f"queue/images/{post_id}"
     os.makedirs(frames_dir, exist_ok=True)
     frame_paths = []
-    print(f"\nRendering {len(scenes)} frames...")
 
-    
+    # Render branded cover as first frame — Instagram uses first frame as thumbnail
+    hook_text  = data.get("hook", data.get("topic", "Claude API"))
+    topic_text = data.get("topic", "Claude API")
+    cover_img  = render_cover_frame(hook_text, topic_text)
+    cover_path = f"{frames_dir}/frame_00_cover.png"
+    cover_img.save(cover_path, "PNG", optimize=True)
+    frame_paths.insert(0, cover_path)
+    segment_durations.insert(0, 0.1)
+    print(f"\n  Cover frame added (0.1s thumbnail)")
 
-    print(f"\nRendering {len(scenes)} frames...")
+    print(f"Rendering {len(scenes)} code frames...")
     for i, scene in enumerate(scenes):
         visible = scene.get("visible_lines", len(full_code))
         img     = render_reel_frame(
@@ -621,21 +634,6 @@ def generate_reel():
         frame_paths.append(path)
         print(f"  Frame {i+1}/{len(scenes)} — {visible} lines visible")
 
-    # Generate and upload cover image for Instagram reel thumbnail
-    cover_cloudinary_url = None
-    try:
-        hook_text  = data.get("hook", data.get("topic", "Claude API Tutorial"))
-        topic_text = data.get("topic", "Claude API")
-        cover_img  = render_cover_frame(hook_text, topic_text)
-        cover_path = f"{frames_dir}/cover.png"
-        cover_img.save(cover_path, "PNG", optimize=True)
-        print("Cover image saved")
-
-        from upload_media import upload_image_cloudinary_feed
-        cover_cloudinary_url = upload_image_cloudinary_feed(cover_path)
-        print(f"Cover uploaded: {cover_cloudinary_url}")
-    except Exception as e:
-        print(f"Cover generation skipped: {e}")
     # Assemble video
     video_path = None
     if audio_ok and combined_audio:
@@ -659,8 +657,7 @@ def generate_reel():
         "published_at":     None,
         "instagram_media_id": None,
         "imgbb_url":        None,
-        "cloudinary_video_url":  video_path,
-        "cover_cloudinary_url":  cover_cloudinary_url,
+        "cloudinary_video_url": video_path,
         "generation_inputs": {
             "strategy_snapshot": {
                 "model_phase":    strategy["meta"]["model_phase"],
@@ -705,34 +702,21 @@ def generate_reel():
         }
     }
 
-    # Upload video to Cloudinary + first frame to ImgBB
+    # Upload video to Cloudinary
     if video_path and os.path.exists(video_path):
         try:
-            sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-            from upload_media import upload_video_cloudinary, upload_image_imgbb
+            from upload_media import upload_video_cloudinary, upload_image_cloudinary_feed
             print("\nUploading reel to Cloudinary...")
             queue_entry["cloudinary_video_url"] = upload_video_cloudinary(video_path)
             print(f"Video uploaded: {queue_entry['cloudinary_video_url']}")
-            if frame_paths:
-                queue_entry["imgbb_url"] = upload_image_imgbb(frame_paths[0])
-                print(f"Preview frame uploaded: {queue_entry['imgbb_url']}")
+            # Upload cover frame to Cloudinary for dashboard preview
+            if os.path.exists(cover_path):
+                cover_url = upload_image_cloudinary_feed(cover_path)
+                queue_entry["imgbb_url"] = cover_url
+                queue_entry["cloudinary_image_url"] = cover_url
+                print(f"Cover uploaded: {cover_url}")
         except Exception as e:
             print(f"Upload failed: {e}")
-            # Fall back to frame preview only
-            if frame_paths:
-                try:
-                    from upload_media import upload_image_imgbb
-                    queue_entry["imgbb_url"] = upload_image_imgbb(frame_paths[0])
-                except Exception as e2:
-                    print(f"Frame upload also failed: {e2}")
-    elif frame_paths:
-        try:
-            sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-            from upload_media import upload_image_imgbb
-            queue_entry["imgbb_url"] = upload_image_imgbb(frame_paths[0])
-            print(f"Preview frame uploaded: {queue_entry['imgbb_url']}")
-        except Exception as e:
-            print(f"Frame upload failed: {e}")
 
     # Send email notification
     try:
@@ -749,15 +733,16 @@ def generate_reel():
     print(f"\nQueue entry: {filename}")
     if video_path:
         print(f"Preview: open {video_path}")
-    else:
-        print(f"Frames: open {frames_dir}/")
-    # Auto-commit and push queue file so Render dashboard can see it
+
+    # Auto-commit and push
     try:
         import subprocess
-        subprocess.run(["git", "add", "queue/", "data/"], cwd=os.path.dirname(os.path.dirname(os.path.abspath(__file__))), check=False)
-        subprocess.run(["git", "commit", "-m", f"Generated post {post_id}"], cwd=os.path.dirname(os.path.dirname(os.path.abspath(__file__))), check=False)
-        subprocess.run(["git", "push"], cwd=os.path.dirname(os.path.dirname(os.path.abspath(__file__))), check=False)
-        print("Queue file pushed to GitHub — visible on Render dashboard")
+        repo_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        subprocess.run(["git", "add", "queue/", "data/"], cwd=repo_dir, check=False)
+        subprocess.run(["git", "commit", "-m", f"Generated reel {post_id}"], cwd=repo_dir, check=False)
+        subprocess.run(["git", "pull", "--rebase"], cwd=repo_dir, check=False)
+        subprocess.run(["git", "push"], cwd=repo_dir, check=False)
+        print("Queue file pushed to GitHub")
     except Exception as e:
         print(f"Git push skipped: {e}")
 
