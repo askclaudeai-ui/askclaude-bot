@@ -453,16 +453,16 @@ def generate_carousel():
     if trends:
         trend_ctx = f"Trending: {', '.join(trends.get('trending_topics',[])[:3])}"
 
-    # Anthropic news for fresh topic ideas
-    news_files = sorted([f for f in os.listdir("data") if f.startswith("anthropic_news_")])
-    news_ctx = ""
-    if news_files:
-        try:
-            news = json.load(open(f"data/{news_files[-1]}"))
-            headlines = news.get("headlines", [])[:3]
-            if headlines:
-                news_ctx = f"Latest Anthropic news: {', '.join(headlines)}"
-        except: pass
+    news = json.load(open(f"data/{news_files[-1]}"))
+        raw = news.get("headlines", [])[:3]
+        headlines = []
+        for h in raw:
+            if isinstance(h, str):
+                headlines.append(h)
+            elif isinstance(h, dict):
+                headlines.append(h.get("title", h.get("headline", str(h))))
+        if headlines:
+            news_ctx = f"Latest Anthropic news: {', '.join(headlines)}"
 
     # Recent topics cooldown
     recent_topics = []

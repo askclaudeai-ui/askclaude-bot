@@ -121,7 +121,13 @@ def generate_content(content_type=None):
     news = load_anthropic_news()
     news_ctx = ""
     if news:
-        headlines = news.get("headlines", [])[:3]
+        raw = news.get("headlines", [])[:3]
+        headlines = []
+        for h in raw:
+            if isinstance(h, str):
+                headlines.append(h)
+            elif isinstance(h, dict):
+                headlines.append(h.get("title", h.get("headline", str(h))))
         if headlines:
             news_ctx = f"Latest Anthropic news: {', '.join(headlines)}"
 
