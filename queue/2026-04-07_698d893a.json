@@ -1,11 +1,11 @@
 {
-  "id": "c6f31271",
+  "id": "698d893a",
   "content_type": "static",
   "status": "pending",
-  "created_at": "2026-04-07T15:42:58.989443",
+  "created_at": "2026-04-07T15:47:41.895352",
   "published_at": null,
   "instagram_media_id": null,
-  "imgbb_url": "https://res.cloudinary.com/djpivam1q/image/upload/v1775576862/askclaude_feed/c6f31271_1775576862.png",
+  "imgbb_url": null,
   "generation_inputs": {
     "strategy_snapshot": {
       "model_phase": "bootstrap",
@@ -115,13 +115,13 @@
       ],
       "research_date": "2026-03-29"
     },
-    "topic_cluster": "Migrating from output_format to output_config.format",
+    "topic_cluster": "Implementing automatic caching with single cache_control field",
     "hook_style_used": "how_to"
   },
   "post": {
-    "topic": "using structured outputs with output_config.format for json validation",
-    "hook": "How to force Claude to return valid JSON every time \u2728",
-    "caption": "Claude's new output_config.format parameter guarantees structured responses without prompt engineering tricks.\n\nInstead of hoping Claude follows your JSON format instructions, use output_config with format: 'json' and a schema parameter. This enforces strict JSON validation at the API level.\n\nThe old output_format parameter is deprecated - migrate to output_config.format for better reliability. Your schema defines the exact structure, field types, and required properties.\n\nPerfect for building reliable AI integrations where consistent data structure matters more than creative flexibility.\n\nSave this for your next Claude API project! \ud83d\udcbe",
+    "topic": "handling claude api rate limits with exponential backoff",
+    "hook": "How to handle Claude API rate limits like a pro developer",
+    "caption": "Rate limits hitting your Claude API calls? Implement exponential backoff to handle 429 errors gracefully. Start with a 1-second delay, double it on each retry, and add random jitter to prevent thundering herd problems. Set a max retry count (usually 3-5) and cap your backoff at 60 seconds. Pro tip: Parse the retry-after header from 429 responses for exact wait times. This approach keeps your app responsive while respecting API limits. Your users won't even notice the brief delays, but your error logs will thank you! \ud83d\udca1 Save this for your next Claude integration.",
     "hashtags": [
       "#claudeai",
       "#anthropic",
@@ -143,8 +143,8 @@
       "#aitools"
     ],
     "audio_suggestion": "original audio",
-    "image_text": "Force Claude to Return Valid JSON",
-    "image_subtext": "output_config.format parameter guide"
+    "image_text": "Handle Claude API Rate Limits",
+    "image_subtext": "Exponential backoff + jitter pattern"
   },
   "scheduling": {
     "recommended_day": "thursday",
@@ -158,6 +158,5 @@
     "predicted_reach": null,
     "prediction_confidence": null,
     "model_phase_at_prediction": "bootstrap"
-  },
-  "cloudinary_image_url": "https://res.cloudinary.com/djpivam1q/image/upload/v1775576862/askclaude_feed/c6f31271_1775576862.png"
+  }
 }
