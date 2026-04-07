@@ -163,10 +163,43 @@ def publish_post(dry_run=False):
             print(f"Reel video: {video_url}")
 
         elif content_type == "story":
+            story_type_val = post.get("story_type", "")
             story_urls = post.get("cloudinary_story_urls", [])
             if not story_urls:
                 raise Exception("No Cloudinary story URLs found")
-            # Stories: publish first slide (Late API handles one story at a time)
+
+            # Poll and quiz require manual posting with Instagram sticker
+            if story_type_val in ("poll", "quiz"):
+                print(f"Story type '{story_type_val}' requires manual posting.")
+                manual_action = post.get("manual_action", {})
+                steps = manual_action.get("steps", [])
+                try:
+                    from notify import send_email
+                    steps_html = "".join(f"<li style='margin-bottom:8px'>{s}</li>" for s in steps)
+                    html = f"""<!DOCTYPE html>
+<html><body style="font-family:-apple-system,sans-serif;background:#0D1117;color:#E6EDF3;padding:20px">
+<div style="max-width:520px;margin:0 auto;background:#161B22;border-radius:16px;padding:24px;border:1px solid #30363D">
+<h2 style="color:#D97706">📱 Post your {story_type_val} story manually</h2>
+<p style="color:#8B949E">Your story is approved. Post it in Instagram and add the sticker.</p>
+<img src="{story_urls[0]}" style="width:100%;max-width:300px;border-radius:12px;margin:16px 0;display:block">
+<div style="background:#0D1117;border-radius:10px;padding:14px;border-left:3px solid #D97706;margin:12px 0">
+<div style="color:#D97706;font-weight:700;margin-bottom:8px">Steps:</div>
+<ol style="color:#C9D1D9;font-size:13px;line-height:2;padding-left:20px">{steps_html}</ol>
+</div>
+<div style="background:#0D1117;border-radius:10px;padding:12px;margin:12px 0">
+<div style="font-size:11px;color:#8B949E;margin-bottom:4px">Caption:</div>
+<div style="font-size:13px;color:#E6EDF3;white-space:pre-wrap">{full_caption[:300]}</div>
+</div>
+<a href="{story_urls[0]}" style="display:block;background:#3730A3;color:#FFF3D0;text-align:center;padding:14px;border-radius:12px;font-weight:700;text-decoration:none;margin-top:16px">Open story image →</a>
+</div></body></html>"""
+                    send_email(f"📱 Post your {story_type_val} story manually", html)
+                    print("Manual posting email sent")
+                except Exception as e:
+                    print(f"Email failed: {e}")
+                update_queue_file(path, post, f"manual_{story_type_val}_{post_id}")
+                return True
+
+            # Auto-publish other story types
             media_items = [{"type": "image", "url": story_urls[0]}]
             print(f"Story: {story_urls[0]}")
 
