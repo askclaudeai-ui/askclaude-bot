@@ -1,0 +1,53 @@
+{
+  "id": "888abbc3",
+  "content_type": "story",
+  "story_type": "quiz",
+  "status": "pending",
+  "created_at": "2026-04-03T22:13:46.865127",
+  "published_at": null,
+  "instagram_media_id": null,
+  "imgbb_url": "https://res.cloudinary.com/djpivam1q/image/upload/v1775250827/askclaude_stories/story_01.png",
+  "cloudinary_story_urls": [
+    "https://res.cloudinary.com/djpivam1q/image/upload/v1775250827/askclaude_stories/story_01.png"
+  ],
+  "parent_post_id": null,
+  "manual_action": {
+    "required": true,
+    "action": "Add Quiz sticker",
+    "steps": [
+      "Open the story in Instagram after posting",
+      "Tap the Sticker icon",
+      "Select Quiz",
+      "Enter the question and 4 answers",
+      "Mark the correct answer",
+      "Position and post"
+    ]
+  },
+  "generation_inputs": {
+    "story_type": "quiz",
+    "parent_topic": ""
+  },
+  "post": {
+    "caption": "Think you know Claude's limits? \ud83e\udd14\nTest your API knowledge! \ud83d\udca1\n\n#ClaudeAPI #AI #Developers #APIQuiz #MachineLearning",
+    "image_paths": [
+      "queue/stories/888abbc3/story_01.png"
+    ],
+    "slide_count": 1,
+    "story_data": {
+      "question": "What's the maximum context window for Claude-3.5-Sonnet?",
+      "options": [
+        "200K tokens",
+        "128K tokens",
+        "100K tokens",
+        "32K tokens"
+      ],
+      "correct_index": 0,
+      "explanation": "Claude-3.5-Sonnet supports up to 200,000 tokens in its context window for processing long documents.",
+      "caption": "Think you know Claude's limits? \ud83e\udd14\nTest your API knowledge! \ud83d\udca1\n\n#ClaudeAPI #AI #Developers #APIQuiz #MachineLearning"
+    }
+  },
+  "scheduling": {
+    "recommended_time_utc": 18,
+    "actual_publish_time": null
+  }
+}

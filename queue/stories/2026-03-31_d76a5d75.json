@@ -1,0 +1,29 @@
+{
+  "id": "d76a5d75",
+  "content_type": "story",
+  "story_type": "reel_teaser",
+  "status": "pending",
+  "created_at": "2026-03-31T21:02:13.919477",
+  "published_at": null,
+  "instagram_media_id": null,
+  "parent_post_id": "abe79160",
+  "generation_inputs": {
+    "story_type": "reel_teaser",
+    "parent_topic": "streaming Claude API responses for better UX"
+  },
+  "post": {
+    "caption": "Stop making users wait 30+ seconds for Claude responses \u26a1\nSee the streaming trick in today's Reel \u2192",
+    "image_paths": [
+      "queue/stories/d76a5d75/story_01.png"
+    ],
+    "slide_count": 1,
+    "story_data": {
+      "topic": "Stream Claude API responses for instant user experience",
+      "caption": "Stop making users wait 30+ seconds for Claude responses \u26a1\nSee the streaming trick in today's Reel \u2192"
+    }
+  },
+  "scheduling": {
+    "recommended_time_utc": 18,
+    "actual_publish_time": null
+  }
+}

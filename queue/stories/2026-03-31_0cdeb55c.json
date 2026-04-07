@@ -1,0 +1,52 @@
+{
+  "id": "0cdeb55c",
+  "content_type": "story",
+  "story_type": "weekly_roundup",
+  "status": "pending",
+  "created_at": "2026-03-31T21:07:02.873650",
+  "published_at": null,
+  "instagram_media_id": null,
+  "parent_post_id": "abe79160",
+  "generation_inputs": {
+    "story_type": "weekly_roundup",
+    "parent_topic": "streaming Claude API responses for better UX"
+  },
+  "post": {
+    "caption": "Another week of helping you unlock AI's potential! \ud83e\udd16\u2728\nFrom creative writing to coding solutions, we're here for all your questions.",
+    "image_paths": [
+      "queue/stories/0cdeb55c/story_01.png",
+      "queue/stories/0cdeb55c/story_02.png"
+    ],
+    "slide_count": 2,
+    "story_data": {
+      "slide1": {
+        "posts_summary": [
+          {
+            "day": "Mon",
+            "title": "Creative Writing Tips for Beginners"
+          },
+          {
+            "day": "Wed",
+            "title": "Understanding AI Safety and Ethics"
+          },
+          {
+            "day": "Thu",
+            "title": "Productivity Hacks That Actually Work"
+          }
+        ]
+      },
+      "slide2": {
+        "stat_number": "1.2k",
+        "stat_description": "questions answered about coding and programming"
+      },
+      "slide3": {
+        "teaser": "exploring advanced prompt engineering techniques"
+      },
+      "caption": "Another week of helping you unlock AI's potential! \ud83e\udd16\u2728\nFrom creative writing to coding solutions, we're here for all your questions."
+    }
+  },
+  "scheduling": {
+    "recommended_time_utc": 18,
+    "actual_publish_time": null
+  }
+}

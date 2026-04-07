@@ -1,0 +1,39 @@
+{
+  "id": "55ffbbdd",
+  "content_type": "story",
+  "story_type": "tip_repurpose",
+  "status": "pending",
+  "created_at": "2026-04-03T22:41:41.432992",
+  "published_at": null,
+  "instagram_media_id": null,
+  "imgbb_url": "https://res.cloudinary.com/djpivam1q/image/upload/v1775252502/askclaude_stories/story_01.png",
+  "cloudinary_story_urls": [
+    "https://res.cloudinary.com/djpivam1q/image/upload/v1775252502/askclaude_stories/story_01.png"
+  ],
+  "parent_post_id": null,
+  "manual_action": {
+    "required": false,
+    "action": null,
+    "steps": []
+  },
+  "generation_inputs": {
+    "story_type": "tip_repurpose",
+    "parent_topic": ""
+  },
+  "post": {
+    "caption": "\ud83e\udde0 Want better AI responses?\n\nAsk Claude to show its work! When you request step-by-step reasoning, you get more accurate answers AND insight into how AI processes information.\n\nTry it on your next complex question! \u2728\n\n#ClaudeAI #AITips #ProductivityHacks",
+    "image_paths": [
+      "queue/stories/55ffbbdd/story_01.png"
+    ],
+    "slide_count": 1,
+    "story_data": {
+      "tip_text": "Ask Claude to explain its reasoning process step-by-step",
+      "subtext": "You'll get more accurate answers and learn how AI thinks through problems.",
+      "caption": "\ud83e\udde0 Want better AI responses?\n\nAsk Claude to show its work! When you request step-by-step reasoning, you get more accurate answers AND insight into how AI processes information.\n\nTry it on your next complex question! \u2728\n\n#ClaudeAI #AITips #ProductivityHacks"
+    }
+  },
+  "scheduling": {
+    "recommended_time_utc": 18,
+    "actual_publish_time": null
+  }
+}

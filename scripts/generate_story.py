@@ -688,7 +688,7 @@ def generate_story(story_type=None):
     })
 
     date_str = datetime.now().strftime("%Y-%m-%d")
-    filename = f"queue/stories/{date_str}_{post_id}.json"
+    filename = f"queue/{date_str}_{post_id}.json"
 
     queue_entry = {
         "id":                 post_id,
