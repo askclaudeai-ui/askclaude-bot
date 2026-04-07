@@ -225,14 +225,6 @@ def render_poll(data):
                          col=INDIGO, pad_x=120, h=128)
         y += 152
 
-    y += 24
-    d.rounded_rectangle([120, y, W-120, y+112],
-                         radius=20, fill=BG2, outline=INDIGO, width=3)
-    d.text((W//2, y+36), "👆 Add Poll sticker in Instagram app",
-           font=get_font(32, True), fill=INDIGO, anchor="mm")
-    d.text((W//2, y+82), "Stickers → Poll",
-           font=get_font(28), fill=MID, anchor="mm")
-
     draw_handle(d, W, H-72)
     return img
 

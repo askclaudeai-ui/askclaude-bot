@@ -906,26 +906,61 @@ def approve(post_id):
 
 @app.route("/reject/<post_id>")
 def reject(post_id):
-    path, post = find_post_file(post_id)
-    if not post:
-        return redirect(url_for("index", filter="pending"))
-    content_type = post.get("content_type", "static")
-    story_type   = post.get("story_type")
-    try:
-        os.remove(path)
-        print(f"Deleted rejected post: {path}")
-    except Exception as e:
-        print(f"Could not delete: {e}")
     github_token = os.getenv("GITHUB_TOKEN_PAT") or os.getenv("GITHUB_TOKEN")
     github_repo  = os.getenv("GITHUB_REPO")
+    content_type = "static"
+    story_type   = None
+
+    headers = {
+        "Authorization": f"token {github_token}",
+        "Accept":        "application/vnd.github.v3+json"
+    }
+
+    # Find and delete the file on GitHub
+    for folder in ["queue", "queue/stories"]:
+        try:
+            r = requests.get(
+                f"https://api.github.com/repos/{github_repo}/contents/{folder}",
+                headers=headers
+            )
+            if r.status_code != 200:
+                continue
+            for item in r.json():
+                if item.get("type") == "file" and post_id in item.get("name", ""):
+                    # Get content to extract content_type
+                    try:
+                        r2   = requests.get(item["download_url"])
+                        data = json.loads(r2.text)
+                        content_type = data.get("content_type", "static")
+                        story_type   = data.get("story_type")
+                    except: pass
+                    # Delete file on GitHub
+                    requests.delete(
+                        f"https://api.github.com/repos/{github_repo}/contents/{item['path']}",
+                        headers=headers,
+                        json={
+                            "message": f"Rejected post {post_id}",
+                            "sha":     item["sha"],
+                            "branch":  "main"
+                        }
+                    )
+                    print(f"Deleted {item['path']} from GitHub")
+                    break
+        except Exception as e:
+            print(f"Error deleting from GitHub: {e}")
+
+    # Also delete locally if exists
+    path, post = find_post_file(post_id)
+    if path:
+        try: os.remove(path)
+        except: pass
+
+    # Trigger regeneration
     if github_token and github_repo:
         try:
             requests.post(
                 f"https://api.github.com/repos/{github_repo}/dispatches",
-                headers={
-                    "Authorization": f"token {github_token}",
-                    "Accept":        "application/vnd.github.v3+json"
-                },
+                headers=headers,
                 json={
                     "event_type": "regenerate_content",
                     "client_payload": {
@@ -936,6 +971,7 @@ def reject(post_id):
             )
         except Exception as e:
             print(f"Could not trigger regeneration: {e}")
+
     return redirect(url_for("index", filter="pending"))
 
 @app.route("/edit", methods=["POST"])
