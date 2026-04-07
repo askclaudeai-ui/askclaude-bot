@@ -318,10 +318,7 @@ def generate_voiceover_script(client, trends, recent_topics=None):
 
     avoid_str = ""
     if recent_topics:
-        avoid_str = f"""
-RECENTLY USED TOPICS (do NOT repeat these):
-{chr(10).join(f'- {t}' for t in recent_topics[:6])}
-
+        avoid_str = f"RECENTLY USED TOPICS (do NOT repeat these):\n" + "\n".join(f'- {t}' for t in (recent_topics or [])[:6])
 
     prompt = f"""You are writing a calm, educational voiceover for a 28-32 second Instagram Reel for @ask.claudeai.
 The reel teaches ONE Claude API technique as a live coding tutorial.
@@ -333,7 +330,7 @@ STRATEGY:
 
 CONCEPT:
 The screen shows ONE Python file being written from scratch.
-Each scene reveals more lines — like watching someone type live.
+Each scene reveals more lines - like watching someone type live.
 Each scene has its OWN voiceover narration describing exactly what is visible.
 
 VOICEOVER RULES PER SCENE:
@@ -353,7 +350,7 @@ CODE RULES:
 
 {avoid_str}
 
-Choose ONE topic from this list — pick whichever is most interesting and NOT in the recently used list above:
+Choose ONE topic from this list - pick whichever is most interesting and NOT in the recently used list above:
 - Streaming Claude responses in real time
 - Using system prompts for consistent behaviour
 - Multi-turn conversation with message history
