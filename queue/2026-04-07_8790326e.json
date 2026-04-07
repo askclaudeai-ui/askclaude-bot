@@ -1,10 +1,10 @@
 {
   "id": "8790326e",
   "content_type": "carousel",
-  "status": "approved",
+  "status": "published",
   "created_at": "2026-04-07T16:01:57.020104",
-  "published_at": null,
-  "instagram_media_id": null,
+  "published_at": "2026-04-07T16:07:29.064728",
+  "instagram_media_id": "69d52b8e0563632b0707215f",
   "imgbb_url": "https://i.ibb.co/tpXcJWRX/c7636f455531.png",
   "imgbb_slide_urls": [
     "https://i.ibb.co/tpXcJWRX/c7636f455531.png",
@@ -204,9 +204,9 @@
   "scheduling": {
     "recommended_day": "thursday",
     "recommended_time_utc": "13:00",
-    "actual_publish_day": null,
-    "actual_publish_time_utc": null,
-    "timing_deviation_hours": null
+    "actual_publish_day": "tuesday",
+    "actual_publish_time_utc": "16:07",
+    "timing_deviation_hours": 3
   },
   "model_prediction": {
     "predicted_engagement_rate": null,
