@@ -664,33 +664,71 @@ function regenImageOnly(postId) {
 </html>
 """
 
-def load_posts(filter_status=None):
+def fetch_posts_from_github():
+    """Fetch all queue JSON files directly from GitHub API."""
+    github_token = os.getenv("GITHUB_TOKEN_PAT") or os.getenv("GITHUB_TOKEN")
+    github_repo  = os.getenv("GITHUB_REPO")
+    if not github_token or not github_repo:
+        return None
+
+    headers = {
+        "Authorization": f"token {github_token}",
+        "Accept":        "application/vnd.github.v3+json"
+    }
+
     posts = []
-
-    # Collect all queue files — local filesystem
-    all_files = []
-    if os.path.exists(QUEUE_DIR):
-        for fname in os.listdir(QUEUE_DIR):
-            if fname.endswith(".json"):
-                all_files.append(os.path.join(QUEUE_DIR, fname))
-
-    # Also scan queue/stories/
-    stories_dir = os.path.join(QUEUE_DIR, "stories")
-    if os.path.exists(stories_dir):
-        for fname in os.listdir(stories_dir):
-            if fname.endswith(".json"):
-                all_files.append(os.path.join(stories_dir, fname))
-
-    for path in sorted(all_files, reverse=True):
+    for folder in ["queue", "queue/stories"]:
         try:
-            with open(path, "r") as f:
-                post = json.load(f)
+            r = requests.get(
+                f"https://api.github.com/repos/{github_repo}/contents/{folder}",
+                headers=headers,
+                timeout=5
+            )
+            if r.status_code != 200:
+                continue
+            for item in r.json():
+                if not isinstance(item, dict): continue
+                if not item.get("name","").endswith(".json"): continue
+                if item.get("type") != "file": continue
+                try:
+                    r2   = requests.get(item["download_url"], timeout=5)
+                    post = json.loads(r2.text)
+                    posts.append(post)
+                except:
+                    continue
+        except:
+            continue
+    return posts if posts else None
 
-            # Treat ready_to_post as pending for display
+def load_posts(filter_status=None):
+    raw_posts = fetch_posts_from_github()
+
+    # Fall back to local files if GitHub fetch fails
+    if raw_posts is None:
+        raw_posts = []
+        all_files = []
+        if os.path.exists(QUEUE_DIR):
+            for fname in os.listdir(QUEUE_DIR):
+                if fname.endswith(".json"):
+                    all_files.append(os.path.join(QUEUE_DIR, fname))
+        stories_dir = os.path.join(QUEUE_DIR, "stories")
+        if os.path.exists(stories_dir):
+            for fname in os.listdir(stories_dir):
+                if fname.endswith(".json"):
+                    all_files.append(os.path.join(stories_dir, fname))
+        for path in all_files:
+            try:
+                with open(path) as f:
+                    raw_posts.append(json.load(f))
+            except:
+                continue
+
+    posts = []
+    for post in raw_posts:
+        try:
             if post.get("status") == "ready_to_post":
                 post["status"] = "pending"
 
-            # Image URL — prefer Cloudinary
             cloudinary_img = post.get("cloudinary_image_url")
             imgbb          = post.get("imgbb_url", "")
             if cloudinary_img:
@@ -700,7 +738,7 @@ def load_posts(filter_status=None):
             elif imgbb:
                 post["image_path"] = imgbb
             else:
-                local = os.path.join(QUEUE_DIR, "images", f"{post['id']}.png")
+                local = os.path.join(QUEUE_DIR, "images", f"{post.get('id','')}.png")
                 post["image_path"] = local if os.path.exists(local) else None
 
             post["cloudinary_video_url"]  = post.get("cloudinary_video_url")
@@ -709,7 +747,6 @@ def load_posts(filter_status=None):
             post["manual_action"]          = post.get("manual_action", {})
             post["story_type"]             = post.get("story_type", "")
 
-            # Ensure required fields exist for all post types
             if "post" not in post:
                 post["post"] = {}
             post["post"].setdefault("hook", "")
@@ -719,6 +756,7 @@ def load_posts(filter_status=None):
                 post["scheduling"] = {}
             post["scheduling"].setdefault("recommended_day", "")
             post["scheduling"].setdefault("recommended_time_utc", "")
+
             if filter_status and filter_status != "all":
                 if post.get("status") == filter_status:
                     posts.append(post)
@@ -727,6 +765,7 @@ def load_posts(filter_status=None):
         except:
             continue
 
+    posts.sort(key=lambda x: x.get("created_at", ""), reverse=True)
     return posts
 
 def count_posts():
